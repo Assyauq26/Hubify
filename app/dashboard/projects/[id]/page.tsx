@@ -8,9 +8,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) {
-    redirect('/login')
-  }
+  if (!user) redirect('/login')
 
   const { data: project, error } = await supabase
     .from('projects')
@@ -19,16 +17,22 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     .eq('user_id', user.id)
     .single()
 
-  if (error || !project) {
-    notFound()
-  }
+  if (error || !project) notFound()
 
-  const { data: notes } = await supabase
-    .from('notes')
-    .select('id, title, updated_at')
-    .eq('project_id', id)
-    .eq('user_id', user.id)
-    .order('updated_at', { ascending: false })
+  const [{ data: notes }, { data: links }] = await Promise.all([
+    supabase
+      .from('notes')
+      .select('id, title, updated_at')
+      .eq('project_id', id)
+      .eq('user_id', user.id)
+      .order('updated_at', { ascending: false }),
+    supabase
+      .from('links')
+      .select('id, title, url, description, updated_at')
+      .eq('project_id', id)
+      .eq('user_id', user.id)
+      .order('updated_at', { ascending: false }),
+  ])
 
   return (
     <main className="min-h-screen bg-neutral-50 px-5 py-8 text-neutral-950 sm:px-8">
@@ -54,7 +58,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
               Description
               <textarea name="description" rows={5} defaultValue={project.description ?? ''} className="mt-2 w-full resize-none rounded-lg border border-neutral-200 px-3 py-2.5 outline-none focus:border-neutral-950 focus:ring-2 focus:ring-neutral-950/10" />
             </label>
-            <div className="flex justify-end gap-3 pt-2">
+            <div className="flex justify-end pt-2">
               <button type="submit" className="rounded-lg bg-neutral-950 px-4 py-2.5 text-sm font-medium text-white hover:bg-neutral-800">Save changes</button>
             </div>
           </form>
@@ -73,9 +77,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
               <p className="text-sm font-medium">Notes</p>
               <p className="mt-1 text-sm text-neutral-500">Keep rich-text documentation and project context here.</p>
             </div>
-            <Link href={`/dashboard/projects/${id}/notes/new`} className="shrink-0 rounded-lg bg-neutral-950 px-3 py-2 text-sm font-medium text-white hover:bg-neutral-800">
-              New note
-            </Link>
+            <Link href={`/dashboard/projects/${id}/notes/new`} className="shrink-0 rounded-lg bg-neutral-950 px-3 py-2 text-sm font-medium text-white hover:bg-neutral-800">New note</Link>
           </div>
 
           {notes && notes.length > 0 ? (
@@ -91,15 +93,35 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
               ))}
             </div>
           ) : (
-            <div className="mt-5 rounded-lg bg-neutral-50 p-5 text-sm text-neutral-500">
-              No notes yet. Create your first project note.
-            </div>
+            <div className="mt-5 rounded-lg bg-neutral-50 p-5 text-sm text-neutral-500">No notes yet. Create your first project note.</div>
           )}
         </section>
 
         <section className="mt-4 rounded-xl border border-neutral-200 bg-white p-5 sm:p-6">
-          <p className="text-sm font-medium">Links</p>
-          <p className="mt-1 text-sm text-neutral-500">The project Link Manager will be added next.</p>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-sm font-medium">Links</p>
+              <p className="mt-1 text-sm text-neutral-500">Keep useful project resources in one place.</p>
+            </div>
+            <Link href={`/dashboard/projects/${id}/links/new`} className="shrink-0 rounded-lg border border-neutral-200 px-3 py-2 text-sm font-medium hover:bg-neutral-50">Add link</Link>
+          </div>
+
+          {links && links.length > 0 ? (
+            <div className="mt-5 divide-y divide-neutral-100 border-t border-neutral-100">
+              {links.map((link) => (
+                <div key={link.id} className="flex items-start justify-between gap-4 py-4">
+                  <div className="min-w-0">
+                    <Link href={`/dashboard/projects/${id}/links/${link.id}`} className="block truncate text-sm font-medium hover:underline">{link.title}</Link>
+                    {link.description ? <p className="mt-1 text-xs text-neutral-500">{link.description}</p> : null}
+                    <a href={link.url} target="_blank" rel="noreferrer" className="mt-1 block truncate text-xs text-neutral-400 hover:text-neutral-700">{link.url}</a>
+                  </div>
+                  <Link href={`/dashboard/projects/${id}/links/${link.id}`} className="shrink-0 text-sm text-neutral-400 hover:text-neutral-950">Edit</Link>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-5 rounded-lg bg-neutral-50 p-5 text-sm text-neutral-500">No links yet. Add a repository, document, website, or other resource.</div>
+          )}
         </section>
       </div>
     </main>
