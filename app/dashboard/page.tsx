@@ -5,6 +5,12 @@ import { signOut } from './actions'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
+  const { data: claimsData } = await supabase.auth.getClaims()
+
+  if (!claimsData?.claims?.sub) {
+    redirect('/login')
+  }
+
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
