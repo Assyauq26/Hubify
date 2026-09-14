@@ -16,11 +16,19 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     .from('projects')
     .select('id, name, description, created_at, updated_at')
     .eq('id', id)
+    .eq('user_id', user.id)
     .single()
 
   if (error || !project) {
     notFound()
   }
+
+  const { data: notes } = await supabase
+    .from('notes')
+    .select('id, title, updated_at')
+    .eq('project_id', id)
+    .eq('user_id', user.id)
+    .order('updated_at', { ascending: false })
 
   return (
     <main className="min-h-screen bg-neutral-50 px-5 py-8 text-neutral-950 sm:px-8">
@@ -59,15 +67,39 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           </div>
         </div>
 
-        <section className="mt-6 grid gap-4 sm:grid-cols-2">
-          <div className="rounded-xl border border-neutral-200 bg-white p-5">
-            <p className="text-sm font-medium">Notes</p>
-            <p className="mt-1 text-sm text-neutral-500">Rich-text project notes will live here.</p>
+        <section className="mt-6 rounded-xl border border-neutral-200 bg-white p-5 sm:p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-sm font-medium">Notes</p>
+              <p className="mt-1 text-sm text-neutral-500">Keep rich-text documentation and project context here.</p>
+            </div>
+            <Link href={`/dashboard/projects/${id}/notes/new`} className="shrink-0 rounded-lg bg-neutral-950 px-3 py-2 text-sm font-medium text-white hover:bg-neutral-800">
+              New note
+            </Link>
           </div>
-          <div className="rounded-xl border border-neutral-200 bg-white p-5">
-            <p className="text-sm font-medium">Links</p>
-            <p className="mt-1 text-sm text-neutral-500">Useful project links will live here.</p>
-          </div>
+
+          {notes && notes.length > 0 ? (
+            <div className="mt-5 divide-y divide-neutral-100 border-t border-neutral-100">
+              {notes.map((note) => (
+                <Link key={note.id} href={`/dashboard/projects/${id}/notes/${note.id}`} className="flex items-center justify-between gap-4 py-4 hover:bg-neutral-50">
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-medium">{note.title}</span>
+                    <span className="mt-1 block text-xs text-neutral-400">Updated {new Date(note.updated_at).toLocaleString('en-ID')}</span>
+                  </span>
+                  <span className="text-sm text-neutral-400">→</span>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-5 rounded-lg bg-neutral-50 p-5 text-sm text-neutral-500">
+              No notes yet. Create your first project note.
+            </div>
+          )}
+        </section>
+
+        <section className="mt-4 rounded-xl border border-neutral-200 bg-white p-5 sm:p-6">
+          <p className="text-sm font-medium">Links</p>
+          <p className="mt-1 text-sm text-neutral-500">The project Link Manager will be added next.</p>
         </section>
       </div>
     </main>
