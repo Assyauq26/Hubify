@@ -46,14 +46,17 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
               Description
               <textarea name="description" rows={5} defaultValue={project.description ?? ''} className="mt-2 w-full resize-none rounded-lg border border-neutral-200 px-3 py-2.5 outline-none focus:border-neutral-950 focus:ring-2 focus:ring-neutral-950/10" />
             </label>
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-              <form action={deleteProject}>
-                <input type="hidden" name="id" value={project.id} />
-                <button type="submit" className="rounded-lg px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50">Delete project</button>
-              </form>
+            <div className="flex justify-end gap-3 pt-2">
               <button type="submit" className="rounded-lg bg-neutral-950 px-4 py-2.5 text-sm font-medium text-white hover:bg-neutral-800">Save changes</button>
             </div>
           </form>
+
+          <div className="mt-6 border-t border-neutral-100 pt-6">
+            <form action={deleteProject}>
+              <input type="hidden" name="id" value={project.id} />
+              <button type="submit" className="rounded-lg px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50">Delete project</button>
+            </form>
+          </div>
         </div>
 
         <section className="mt-6 grid gap-4 sm:grid-cols-2">
