@@ -18,3 +18,58 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 button, input, textarea { font: inherit; }
+
+.note-editor .ProseMirror {
+  min-height: 16rem;
+  outline: none;
+  color: #171717;
+  line-height: 1.75;
+}
+
+.note-editor .ProseMirror p { margin: 0.65rem 0; }
+
+.note-editor .ProseMirror h1,
+.note-editor .ProseMirror h2,
+.note-editor .ProseMirror h3 {
+  margin: 1.25rem 0 0.65rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.note-editor .ProseMirror h1 { font-size: 1.75rem; }
+.note-editor .ProseMirror h2 { font-size: 1.4rem; }
+.note-editor .ProseMirror h3 { font-size: 1.15rem; }
+
+.note-editor .ProseMirror ul,
+.note-editor .ProseMirror ol {
+  margin: 0.65rem 0;
+  padding-left: 1.5rem;
+}
+
+.note-editor .ProseMirror blockquote {
+  margin: 1rem 0;
+  border-left: 3px solid #d4d4d4;
+  padding-left: 1rem;
+  color: #525252;
+}
+
+.note-editor .ProseMirror a {
+  color: #171717;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.note-editor .ProseMirror code {
+  border-radius: 0.25rem;
+  background: #f5f5f5;
+  padding: 0.15rem 0.3rem;
+  font-size: 0.9em;
+}
+
+.note-editor .ProseMirror pre {
+  overflow-x: auto;
+  border-radius: 0.5rem;
+  background: #171717;
+  color: #f5f5f5;
+  padding: 1rem;
+}
