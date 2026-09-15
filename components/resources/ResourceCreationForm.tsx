@@ -51,12 +51,12 @@ export function ResourceCreationForm({ workspaceId }: { workspaceId: string }) {
     if (type !== 'file') {
       const formData = new FormData(event.currentTarget)
       startTransition(async () => {
-        try {
-          await createResource(formData)
-        } catch (submissionError) {
-          const message = submissionError instanceof Error ? submissionError.message : 'Could not create the resource.'
-          setError(message)
+        const result = await createResource(formData)
+        if (!result.ok) {
+          setError(result.error)
+          return
         }
+        window.location.assign(`/dashboard/workspaces/${workspaceId}`)
       })
       return
     }
@@ -82,7 +82,10 @@ export function ResourceCreationForm({ workspaceId }: { workspaceId: string }) {
         .upload(prepared.path, file, { contentType: file.type || 'application/octet-stream', upsert: false })
 
       if (uploadError) {
-        await deleteResource(new FormData(Object.assign(new HTMLFormElement(), {})))
+        const cleanupData = new FormData()
+        cleanupData.set('id', prepared.resourceId)
+        cleanupData.set('workspace_id', workspaceId)
+        await deleteResource(cleanupData)
         setStatus(null)
         setError(uploadError.message)
         return
