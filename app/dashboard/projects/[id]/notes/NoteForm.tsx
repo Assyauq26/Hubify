@@ -33,7 +33,7 @@ export function NoteForm({
   return (
     <form
       action={action}
-      className="space-y-5"
+      className="space-y-7"
       onSubmit={(event) => {
         const form = event.currentTarget
         let input = form.elements.namedItem('content') as HTMLInputElement | null
@@ -49,25 +49,25 @@ export function NoteForm({
       <input type="hidden" name="project_id" value={projectId} />
       {noteId ? <input type="hidden" name="id" value={noteId} /> : null}
 
-      <label className="block text-sm font-medium text-neutral-900">
+      <label className="block text-sm font-medium text-[var(--foreground)]">
         Title
         <input
           name="title"
           required
           defaultValue={initialTitle}
           placeholder="Note title"
-          className="mt-2 w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-base outline-none focus:border-neutral-950 focus:ring-2 focus:ring-neutral-950/10"
+          className="ui-input mt-2 text-base"
         />
       </label>
 
       <div>
-        <div className="mb-2 text-sm font-medium text-neutral-900">Content</div>
+        <div className="mb-2 text-sm font-medium text-[var(--foreground)]">Content</div>
         <NoteEditor initialContent={initialContent ?? emptyContent} onContentChange={updateContent} />
       </div>
 
-      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-xs text-neutral-500">Changes are saved when you press {submitLabel.toLowerCase()}.</p>
-        <button type="submit" className="rounded-lg bg-neutral-950 px-4 py-2.5 text-sm font-medium text-white hover:bg-neutral-800">
+      <div className="flex flex-col-reverse gap-3 border-t border-[var(--border)] pt-5 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-xs leading-5 text-[var(--muted)]">Changes are saved when you press {submitLabel.toLowerCase()}.</p>
+        <button type="submit" className="ui-button-primary w-full sm:w-auto">
           {submitLabel}
         </button>
       </div>
