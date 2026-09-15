@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import WorkspaceTabs from '@/components/workspaces/WorkspaceTabs'
+import type { ResourceType } from '@/lib/resources/types'
 
 export default async function WorkspacePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -14,6 +16,8 @@ export default async function WorkspacePage({ params }: { params: Promise<{ id: 
   ])
 
   if (workspaceError || !workspace) notFound()
+
+  const summaries = (resources ?? []).map((resource) => ({ id: resource.id, title: resource.title, type: resource.type as ResourceType }))
 
   return (
     <div className="min-w-0 bg-[var(--background)] px-[var(--content-gutter)] py-8 text-[var(--foreground)] sm:px-8 lg:px-10 lg:py-10">
@@ -39,27 +43,8 @@ export default async function WorkspacePage({ params }: { params: Promise<{ id: 
 
         {resourcesError ? (
           <div className="mt-8 border border-[var(--error)]/30 bg-[var(--surface)] p-5 text-sm text-[var(--error)]" role="alert">We could not load this workspace's resources.</div>
-        ) : resources && resources.length > 0 ? (
-          <div className="mt-8 divide-y divide-[var(--border)] border-y border-[var(--border)] bg-[var(--surface)]">
-            {resources.map((resource) => (
-              <Link key={resource.id} href={`/dashboard/resources/${resource.id}`} className="group flex items-center justify-between gap-4 px-4 py-4 transition-colors hover:bg-[var(--surface-secondary)] sm:px-5">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="truncate text-sm font-medium">{resource.title}</span>
-                    <span className="shrink-0 text-[10px] uppercase tracking-[0.1em] text-[var(--muted-foreground)]">{resource.type}</span>
-                  </div>
-                  {resource.description ? <p className="mt-1 truncate text-xs text-[var(--muted-foreground)]">{resource.description}</p> : null}
-                </div>
-                <span className="shrink-0 text-[var(--muted-foreground)] transition-transform group-hover:translate-x-0.5" aria-hidden="true">→</span>
-              </Link>
-            ))}
-          </div>
         ) : (
-          <div className="mt-8 border border-dashed border-[var(--border-strong)] p-10 text-center">
-            <h2 className="text-sm font-semibold">This workspace is empty</h2>
-            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[var(--muted-foreground)]">Upload a file or add a link, note, table, or list to start working here.</p>
-            <Link href={`/dashboard/workspaces/${id}/resources/new`} className="ui-button-primary mt-5 inline-flex min-h-10 items-center justify-center">Add first resource</Link>
-          </div>
+          <WorkspaceTabs workspaceId={id} resources={summaries} />
         )}
       </div>
     </div>
