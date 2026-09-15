@@ -2,10 +2,14 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import type { Json } from '@/types/database'
 
-type JsonObject = Record<string, unknown>
+type JsonObject = { [key: string]: Json | undefined }
 
-const EMPTY_NOTE: JsonObject = { type: 'doc', content: [{ type: 'paragraph' }] }
+const EMPTY_NOTE: JsonObject = {
+  type: 'doc',
+  content: [{ type: 'paragraph' }],
+}
 
 function readText(formData: FormData, key: string) {
   return String(formData.get(key) ?? '').trim()
@@ -82,9 +86,10 @@ export async function saveWorkspaceNote(formData: FormData) {
   if (findError || !resource) return { ok: false as const, error: 'Note not found.' }
 
   const metadata = objectValue(resource.metadata) ?? {}
+  const nextMetadata: JsonObject = { ...metadata, content }
   const { error } = await supabase
     .from('resources')
-    .update({ title, metadata: { ...metadata, content } })
+    .update({ title, metadata: nextMetadata })
     .eq('id', resourceId)
     .eq('workspace_id', workspaceId)
     .eq('user_id', user.id)
