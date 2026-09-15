@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { markResourceOpened } from '@/lib/resources/actions'
+import { WorkspaceListEditor } from '@/components/resources/WorkspaceListEditor'
 import { WorkspaceNoteEditor } from '@/components/resources/WorkspaceNoteEditor'
 import { WorkspaceTableEditor } from '@/components/resources/WorkspaceTableEditor'
 import type { ResourceType } from '@/lib/resources/types'
@@ -52,7 +53,8 @@ export default function WorkspaceTabs({ workspaceId, resources }: Props) {
     const index = tabs.findIndex((item) => item.resourceId === resourceId)
     const nextTabs = tabs.filter((item) => item.resourceId !== resourceId)
     const nextActive = activeId === resourceId ? nextTabs[Math.min(index, nextTabs.length - 1)]?.resourceId ?? null : activeId
-    setTabs(nextTabs); setActiveId(nextActive)
+    setTabs(nextTabs)
+    setActiveId(nextActive)
     if (nextActive) await markResourceOpened(nextActive)
   }
   const setDirty = (resourceId: string, dirty: boolean) => setTabs((current) => current.map((tab) => tab.resourceId === resourceId ? { ...tab, dirty } : tab))
@@ -75,7 +77,8 @@ export default function WorkspaceTabs({ workspaceId, resources }: Props) {
     {activeId ? <div id={`workspace-panel-${activeId}`} role="tabpanel" aria-label={resourceMap.get(activeId)?.title ?? 'Active resource'} className="mt-6 overflow-hidden border border-[var(--border)] bg-[var(--surface)]">
       {resourceMap.get(activeId)?.type === 'note' ? <WorkspaceNoteEditor resourceId={activeId} workspaceId={workspaceId} onDirtyChange={(dirty) => setDirty(activeId, dirty)} onTitleChange={(title) => updateTitle(activeId, title)} /> : null}
       {resourceMap.get(activeId)?.type === 'table' ? <WorkspaceTableEditor resourceId={activeId} workspaceId={workspaceId} onDirtyChange={(dirty) => setDirty(activeId, dirty)} onTitleChange={(title) => updateTitle(activeId, title)} /> : null}
-      {resourceMap.get(activeId)?.type !== 'note' && resourceMap.get(activeId)?.type !== 'table' ? <div className="p-8"><p className="text-sm text-[var(--muted-foreground)]">Active resource: <span className="font-medium text-[var(--foreground)]">{resourceMap.get(activeId)?.title}</span></p><a href={`/dashboard/resources/${activeId}`} className="mt-3 inline-flex text-sm font-medium underline underline-offset-2">Open resource viewer</a></div> : null}
+      {resourceMap.get(activeId)?.type === 'list' ? <WorkspaceListEditor resourceId={activeId} workspaceId={workspaceId} onDirtyChange={(dirty) => setDirty(activeId, dirty)} onTitleChange={(title) => updateTitle(activeId, title)} /> : null}
+      {resourceMap.get(activeId)?.type !== 'note' && resourceMap.get(activeId)?.type !== 'table' && resourceMap.get(activeId)?.type !== 'list' ? <div className="p-8"><p className="text-sm text-[var(--muted-foreground)]">Active resource: <span className="font-medium text-[var(--foreground)]">{resourceMap.get(activeId)?.title}</span></p><a href={`/dashboard/resources/${activeId}`} className="mt-3 inline-flex text-sm font-medium underline underline-offset-2">Open resource viewer</a></div> : null}
     </div> : <div className="mt-6 border border-dashed border-[var(--border-strong)] p-8 text-center"><p className="text-sm font-medium">No resource is open</p><p className="mt-1 text-sm text-[var(--muted-foreground)]">Select a resource below to open it as an internal tab.</p></div>}
   </section>
 }
