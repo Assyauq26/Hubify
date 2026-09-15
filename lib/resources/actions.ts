@@ -17,6 +17,15 @@ function safeFileName(fileName: string) {
   return normalized || 'file'
 }
 
+function isHttpUrl(value: string) {
+  try {
+    const url = new URL(value)
+    return url.protocol === 'http:' || url.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
 export async function createResource(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -25,10 +34,13 @@ export async function createResource(formData: FormData) {
   const title = readText(formData, 'title')
   const type = readText(formData, 'type')
   const description = readText(formData, 'description') || null
+  const url = readText(formData, 'url')
   if (!workspaceId || !title || !isResourceType(type)) return { ok: false as const, error: 'Resource type, workspace, and title are required.' }
+  if (type === 'link' && !isHttpUrl(url)) return { ok: false as const, error: 'Enter a valid http:// or https:// URL.' }
   const { data: workspace } = await supabase.from('workspaces').select('id').eq('id', workspaceId).eq('user_id', user.id).single()
   if (!workspace) return { ok: false as const, error: 'Workspace not found.' }
-  const { data, error } = await supabase.from('resources').insert({ workspace_id: workspaceId, user_id: user.id, title, description, type, metadata: {} }).select('id').single()
+  const metadata = type === 'link' ? { url } : {}
+  const { data, error } = await supabase.from('resources').insert({ workspace_id: workspaceId, user_id: user.id, title, description, type, metadata }).select('id').single()
   if (error || !data) return { ok: false as const, error: error?.message ?? 'Could not create the resource.' }
   revalidatePath(`/dashboard/workspaces/${workspaceId}`)
   return { ok: true as const, resourceId: data.id, workspaceId }
