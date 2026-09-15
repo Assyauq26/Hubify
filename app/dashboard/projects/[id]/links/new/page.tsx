@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { AppShell } from '@/components/layout/AppShell'
 import { createLink } from '../actions'
 import { LinkForm } from '../LinkForm'
 
@@ -20,17 +21,26 @@ export default async function NewLinkPage({ params }: { params: Promise<{ id: st
   if (!project) notFound()
 
   return (
-    <main className="min-h-screen bg-neutral-50 px-5 py-8 text-neutral-950 sm:px-8">
-      <div className="mx-auto max-w-2xl">
-        <Link href={`/dashboard/projects/${id}`} className="text-sm text-neutral-500 hover:text-neutral-950">← Back to {project.name}</Link>
-        <div className="mt-8 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8">
-          <p className="text-sm font-medium text-neutral-500">Link Manager</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">Add project link</h1>
-          <div className="mt-8">
+    <AppShell email={user.email}>
+      <main className="min-h-screen bg-[var(--background)] px-[var(--gutter)] py-8 text-[var(--foreground)] sm:px-8 lg:px-10">
+        <div className="mx-auto max-w-3xl">
+          <Link href={`/dashboard/projects/${id}`} className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
+            ← Back to {project.name}
+          </Link>
+
+          <header className="mt-7 border-b border-[var(--border)] pb-7">
+            <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--muted-foreground)]">Link manager</p>
+            <h1 className="mt-2 text-[26px] font-semibold tracking-[-0.02em]">Add project link</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted-foreground)]">
+              Save a repository, document, website, or other resource with this project.
+            </p>
+          </header>
+
+          <section className="py-8">
             <LinkForm action={createLink} projectId={id} submitLabel="Add link" />
-          </div>
+          </section>
         </div>
-      </div>
-    </main>
+      </main>
+    </AppShell>
   )
 }
