@@ -35,12 +35,6 @@ export default async function WorkspacePage({ params }: { params: Promise<{ id: 
           </div>
         </header>
 
-        <nav className="flex gap-6 overflow-x-auto border-b border-[var(--border)] py-3" aria-label="Workspace resource filters">
-          {['All resources', 'Files', 'Links', 'Notes', 'Tables', 'Lists'].map((label, index) => (
-            <span key={label} className={index === 0 ? 'whitespace-nowrap border-b-2 border-[var(--foreground)] pb-3 text-sm font-medium' : 'whitespace-nowrap pb-3 text-sm text-[var(--muted-foreground)]'}>{label}</span>
-          ))}
-        </nav>
-
         {resourcesError ? (
           <div className="mt-8 border border-[var(--error)]/30 bg-[var(--surface)] p-5 text-sm text-[var(--error)]" role="alert">We could not load this workspace's resources.</div>
         ) : (
