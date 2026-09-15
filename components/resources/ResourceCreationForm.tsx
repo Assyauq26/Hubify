@@ -20,6 +20,7 @@ export function ResourceCreationForm({ workspaceId }: { workspaceId: string }) {
   const [file, setFile] = useState<File | null>(null)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [url, setUrl] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [status, setStatus] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -45,6 +46,11 @@ export function ResourceCreationForm({ workspaceId }: { workspaceId: string }) {
 
     if (!title.trim()) {
       setError('Give this resource a title.')
+      return
+    }
+
+    if (type === 'link' && !/^https?:\/\//i.test(url.trim())) {
+      setError('Enter a valid http:// or https:// URL.')
       return
     }
 
@@ -137,6 +143,14 @@ export function ResourceCreationForm({ workspaceId }: { workspaceId: string }) {
           </button>
           <input ref={inputRef} type="file" accept={ACCEPT} onChange={(event) => handleFileChange(event.target.files?.[0] ?? null)} className="sr-only" />
         </section>
+      ) : null}
+
+      {type === 'link' ? (
+        <label className="block text-sm font-medium">
+          URL
+          <input name="url" type="url" value={url} onChange={(event) => setUrl(event.target.value)} required maxLength={2000} className="ui-input mt-2 w-full" placeholder="https://example.com" inputMode="url" autoComplete="url" />
+          <span className="mt-1 block text-xs font-normal text-[var(--muted-foreground)]">Use a full http:// or https:// address.</span>
+        </label>
       ) : null}
 
       <label className="block text-sm font-medium">
