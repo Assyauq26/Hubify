@@ -47,7 +47,7 @@ export async function signUp(_: AuthState, formData: FormData): Promise<AuthStat
     email,
     password,
     options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'}/auth/callback`,
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'}/verify-email`,
     },
   })
 
@@ -59,7 +59,7 @@ export async function signUp(_: AuthState, formData: FormData): Promise<AuthStat
     redirect('/dashboard')
   }
 
-  redirect('/login?registered=1')
+  redirect(`/verify-email?email=${encodeURIComponent(email)}`)
 }
 
 export async function signOut() {
