@@ -7,11 +7,8 @@ import type { Json } from '@/types/database'
 type Column = { id: string; name: string; type: 'text' | 'number' | 'boolean' }
 type Row = Record<string, Json>
 type TableData = { columns: Column[]; rows: Row[] }
-
 type Props = { resourceId: string; workspaceId: string; onDirtyChange?: (dirty: boolean) => void; onTitleChange?: (title: string) => void }
-
 const empty: TableData = { columns: [], rows: [] }
-
 function makeId(prefix: string) { return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}` }
 
 export function WorkspaceTableEditor({ resourceId, workspaceId, onDirtyChange, onTitleChange }: Props) {
@@ -25,117 +22,23 @@ export function WorkspaceTableEditor({ resourceId, workspaceId, onDirtyChange, o
   const latest = useRef({ title: '', data: empty })
   const dirtyRef = useRef(onDirtyChange)
   const titleRef = useRef(onTitleChange)
-
   useEffect(() => { dirtyRef.current = onDirtyChange; titleRef.current = onTitleChange }, [onDirtyChange, onTitleChange])
-
-  useEffect(() => {
-    let cancelled = false
-    setLoading(true)
-    void getWorkspaceTable(resourceId).then((result) => {
-      if (cancelled) return
-      if (!result.ok) { setError(result.error); setLoading(false); return }
-      setTitle(result.table.title)
-      setData(result.table.data)
-      latest.current = { title: result.table.title, data: result.table.data }
-      dirtyRef.current?.(false)
-      setSaveState('saved')
-      setLoading(false)
-    })
-    return () => { cancelled = true }
-  }, [resourceId])
-
-  const scheduleSave = useCallback((nextTitle: string, nextData: TableData) => {
-    latest.current = { title: nextTitle, data: nextData }
-    dirtyRef.current?.(true)
-    setSaveState('unsaved')
-    if (timer.current) clearTimeout(timer.current)
-    timer.current = setTimeout(() => {
-      const form = new FormData()
-      form.set('resource_id', resourceId)
-      form.set('workspace_id', workspaceId)
-      form.set('title', latest.current.title.trim() || 'Untitled table')
-      form.set('data', JSON.stringify(latest.current.data))
-      startTransition(async () => {
-        setSaveState('saving')
-        const result = await saveWorkspaceTable(form)
-        if (!result.ok) { setError(result.error); setSaveState('error'); return }
-        dirtyRef.current?.(false)
-        setSaveState('saved')
-      })
-    }, 700)
-  }, [resourceId, workspaceId])
-
+  useEffect(() => { let cancelled = false; setLoading(true); void getWorkspaceTable(resourceId).then((result) => { if (cancelled) return; if (!result.ok) { setError(result.error); setLoading(false); return }; setTitle(result.table.title); setData(result.table.data); latest.current = { title: result.table.title, data: result.table.data }; dirtyRef.current?.(false); setSaveState('saved'); setLoading(false) }); return () => { cancelled = true } }, [resourceId])
+  const scheduleSave = useCallback((nextTitle: string, nextData: TableData) => { latest.current = { title: nextTitle, data: nextData }; dirtyRef.current?.(true); setSaveState('unsaved'); if (timer.current) clearTimeout(timer.current); timer.current = setTimeout(() => { const form = new FormData(); form.set('resource_id', resourceId); form.set('workspace_id', workspaceId); form.set('title', latest.current.title.trim() || 'Untitled table'); form.set('data', JSON.stringify(latest.current.data)); startTransition(async () => { setSaveState('saving'); const result = await saveWorkspaceTable(form); if (!result.ok) { setError(result.error); setSaveState('error'); return }; dirtyRef.current?.(false); setSaveState('saved') }) }, 700) }, [resourceId, workspaceId])
   const changeTitle = (next: string) => { setTitle(next); titleRef.current?.(next || 'Untitled table'); scheduleSave(next, data) }
-  const changeCell = (rowIndex: number, columnId: string, value: string) => {
-    const column = data.columns.find((item) => item.id === columnId)
-    if (!column) return
-    const typed: Json = column.type === 'number' ? (value === '' ? null : Number(value)) : column.type === 'boolean' ? value === 'true' : value
-    const next = { ...data, rows: data.rows.map((row, index) => index === rowIndex ? { ...row, [columnId]: typed } : row) }
-    setData(next)
-    scheduleSave(title, next)
-  }
-  const addRow = () => {
-    const row = Object.fromEntries(data.columns.map((column) => [column.id, column.type === 'number' ? null : column.type === 'boolean' ? false : ''])) as Row
-    const next = { ...data, rows: [...data.rows, row] }
-    setData(next); scheduleSave(title, next)
-  }
+  const changeCell = (rowIndex: number, columnId: string, value: string) => { const column = data.columns.find((item) => item.id === columnId); if (!column) return; const typed: Json = column.type === 'number' ? (value === '' ? null : Number(value)) : column.type === 'boolean' ? value === 'true' : value; const next = { ...data, rows: data.rows.map((row, index) => index === rowIndex ? { ...row, [columnId]: typed } : row) }; setData(next); scheduleSave(title, next) }
+  const addRow = () => { const row = Object.fromEntries(data.columns.map((column) => [column.id, column.type === 'number' ? null : column.type === 'boolean' ? false : ''])) as Row; const next = { ...data, rows: [...data.rows, row] }; setData(next); scheduleSave(title, next) }
   const deleteRow = (index: number) => { const next = { ...data, rows: data.rows.filter((_, rowIndex) => rowIndex !== index) }; setData(next); scheduleSave(title, next) }
-  const addColumn = () => {
-    const column: Column = { id: makeId('column'), name: `Column ${data.columns.length + 1}`, type: 'text' }
-    const next = { columns: [...data.columns, column], rows: data.rows.map((row) => ({ ...row, [column.id]: '' })) }
-    setData(next); scheduleSave(title, next)
-  }
-  const renameColumn = (columnId: string, name: string) => {
-    const next = { ...data, columns: data.columns.map((column) => column.id === columnId ? { ...column, name } : column) }
-    setData(next); scheduleSave(title, next)
-  }
-  const deleteColumn = (columnId: string) => {
-    if (data.columns.length <= 1) return
-    const nextColumns = data.columns.filter((column) => column.id !== columnId)
-    const nextRows = data.rows.map((row) => { const copy = { ...row }; delete copy[columnId]; return copy })
-    const next = { columns: nextColumns, rows: nextRows }
-    setData(next); scheduleSave(title, next)
-  }
-
+  const addColumn = () => { const column: Column = { id: makeId('column'), name: `Column ${data.columns.length + 1}`, type: 'text' }; const next = { columns: [...data.columns, column], rows: data.rows.map((row) => ({ ...row, [column.id]: '' })) }; setData(next); scheduleSave(title, next) }
+  const renameColumn = (columnId: string, name: string) => { const next = { ...data, columns: data.columns.map((column) => column.id === columnId ? { ...column, name } : column) }; setData(next); scheduleSave(title, next) }
+  const deleteColumn = (columnId: string) => { if (data.columns.length <= 1) return; const nextColumns = data.columns.filter((column) => column.id !== columnId); const nextRows = data.rows.map((row) => { const copy = { ...row }; delete copy[columnId]; return copy }); const next = { columns: nextColumns, rows: nextRows }; setData(next); scheduleSave(title, next) }
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
-
   if (loading) return <div className="min-h-[420px] bg-[var(--surface-secondary)]" aria-label="Loading table" />
   if (error && !title) return <div role="alert" className="p-8 text-sm text-[var(--error)]">{error}</div>
-
   return <div className="bg-[var(--surface)]">
-    <div className="flex flex-col gap-3 border-b border-[var(--border)] px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-8">
-      <input value={title} onChange={(event) => changeTitle(event.target.value)} maxLength={200} aria-label="Table title" placeholder="Untitled table" className="w-full border-0 bg-transparent p-0 text-xl font-semibold outline-none focus:ring-0 sm:text-2xl" />
-      <div className="flex items-center gap-3 text-xs text-[var(--muted-foreground)]" aria-live="polite">
-        <span>{saveState === 'saving' || isPending ? 'Saving…' : saveState === 'unsaved' ? 'Unsaved changes' : saveState === 'error' ? 'Save failed' : 'Saved'}</span>
-        <button type="button" onClick={addColumn} className="border border-[var(--border)] px-3 py-2 text-[var(--foreground)] hover:bg-[var(--surface-secondary)]">+ Column</button>
-      </div>
-    </div>
-    {error ? <div role="alert" className="border-b border-[var(--error)]/30 px-5 py-3 text-sm text-[var(--error)]">{error}</div> : null}
-    <div className="overflow-x-auto">
-      <table className="min-w-full border-collapse text-sm">
-        <thead>
-          <tr>
-            <th className="w-12 border-b border-r border-[var(--border)] bg-[var(--surface-secondary)] p-2 text-center text-xs font-medium text-[var(--muted-foreground)]">#</th>
-            {data.columns.map((column) => <th key={column.id} className="min-w-40 border-b border-r border-[var(--border)] bg-[var(--surface-secondary)] p-0 text-left font-medium">
-              <div className="flex items-center">
-                <input value={column.name} onChange={(event) => renameColumn(column.id, event.target.value)} aria-label={`${column.name} column name`} className="min-w-0 flex-1 bg-transparent px-3 py-2 outline-none focus:bg-[var(--background)]" />
-                <button type="button" onClick={() => deleteColumn(column.id)} disabled={data.columns.length <= 1} aria-label={`Delete ${column.name} column`} className="px-2 text-[var(--muted-foreground)] hover:text-[var(--error)] disabled:opacity-30">×</button>
-              </div>
-            </th>)}
-            <th className="w-12 border-b border-[var(--border)] bg-[var(--surface-secondary)]" />
-          </tr>
-        </thead>
-        <tbody>
-          {data.rows.map((row, rowIndex) => <tr key={rowIndex}>
-            <td className="border-b border-r border-[var(--border)] p-2 text-center text-xs text-[var(--muted-foreground)]">{rowIndex + 1}</td>
-            {data.columns.map((column) => <td key={column.id} className="border-b border-r border-[var(--border)] p-0">
-              {column.type === 'boolean' ? <select value={row[column.id] === true ? 'true' : 'false'} onChange={(event) => changeCell(rowIndex, column.id, event.target.value)} aria-label={`${column.name}, row ${rowIndex + 1}`} className="w-full border-0 bg-transparent px-3 py-2 outline-none"><option value="false">False</option><option value="true">True</option></select> : <input type={column.type === 'number' ? 'number' : 'text'} value={row[column.id] == null ? '' : String(row[column.id])} onChange={(event) => changeCell(rowIndex, column.id, event.target.value)} aria-label={`${column.name}, row ${rowIndex + 1}`} className="w-full border-0 bg-transparent px-3 py-2 outline-none focus:bg-[var(--background)]" />}
-            </td>)}
-            <td className="border-b border-[var(--border)] p-1 text-center"><button type="button" onClick={() => deleteRow(rowIndex)} aria-label={`Delete row ${rowIndex + 1}`} className="px-2 text-[var(--muted-foreground)] hover:text-[var(--error)]">×</button></td>
-          </tr>)}
-        </tbody>
-      </table>
-    </div>
-    <div className="border-t border-[var(--border)] px-5 py-3 sm:px-8"><button type="button" onClick={addRow} className="text-xs font-medium text-[var(--foreground)] underline underline-offset-2">+ Add row</button></div>
+    <div className="flex flex-col gap-3 border-b border-[var(--border)] px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-8"><input value={title} onChange={(event) => changeTitle(event.target.value)} maxLength={200} aria-label="Table title" placeholder="Untitled table" className="w-full border-0 bg-transparent p-0 text-xl font-semibold outline-none focus:ring-0 sm:text-2xl" /><div className="flex items-center justify-between gap-3 text-xs text-[var(--muted-foreground)] sm:justify-end" aria-live="polite"><span>{saveState === 'saving' || isPending ? 'Saving…' : saveState === 'unsaved' ? 'Unsaved changes' : saveState === 'error' ? 'Save failed' : 'Saved'}</span><button type="button" onClick={addColumn} className="min-h-11 border border-[var(--border)] px-3 text-[var(--foreground)] hover:bg-[var(--surface-secondary)]">+ Column</button></div></div>
+    {error ? <div role="alert" className="border-b border-[var(--error-border)] px-5 py-3 text-sm text-[var(--error)]">{error}</div> : null}
+    <div className="overflow-x-auto"><table className="min-w-full border-collapse text-sm"><thead><tr><th className="w-12 border-b border-r border-[var(--border)] bg-[var(--surface-secondary)] p-2 text-center text-xs font-medium text-[var(--muted-foreground)]">#</th>{data.columns.map((column) => <th key={column.id} className="min-w-40 border-b border-r border-[var(--border)] bg-[var(--surface-secondary)] p-0 text-left font-medium"><div className="flex items-center"><input value={column.name} onChange={(event) => renameColumn(column.id, event.target.value)} aria-label={`${column.name} column name`} className="min-h-11 min-w-0 flex-1 bg-transparent px-3 py-2 outline-none focus:bg-[var(--background)]" /><button type="button" onClick={() => deleteColumn(column.id)} disabled={data.columns.length <= 1} aria-label={`Delete ${column.name} column`} className="touch-target inline-flex shrink-0 items-center justify-center text-lg leading-none text-[var(--muted-foreground)] hover:bg-[var(--surface-secondary)] hover:text-[var(--error)] disabled:opacity-30">×</button></div></th>)}<th className="w-12 border-b border-[var(--border)] bg-[var(--surface-secondary)]" /></tr></thead><tbody>{data.rows.map((row, rowIndex) => <tr key={rowIndex}><td className="border-b border-r border-[var(--border)] p-2 text-center text-xs text-[var(--muted-foreground)]">{rowIndex + 1}</td>{data.columns.map((column) => <td key={column.id} className="border-b border-r border-[var(--border)] p-0">{column.type === 'boolean' ? <select value={row[column.id] === true ? 'true' : 'false'} onChange={(event) => changeCell(rowIndex, column.id, event.target.value)} aria-label={`${column.name}, row ${rowIndex + 1}`} className="min-h-11 w-full border-0 bg-transparent px-3 py-2 outline-none"> <option value="false">False</option><option value="true">True</option></select> : <input type={column.type === 'number' ? 'number' : 'text'} value={row[column.id] == null ? '' : String(row[column.id])} onChange={(event) => changeCell(rowIndex, column.id, event.target.value)} aria-label={`${column.name}, row ${rowIndex + 1}`} className="min-h-11 w-full border-0 bg-transparent px-3 py-2 outline-none focus:bg-[var(--background)]" />}</td>)}<td className="border-b border-[var(--border)] p-1 text-center"><button type="button" onClick={() => deleteRow(rowIndex)} aria-label={`Delete row ${rowIndex + 1}`} className="touch-target inline-flex items-center justify-center text-lg leading-none text-[var(--muted-foreground)] hover:bg-[var(--surface-secondary)] hover:text-[var(--error)]">×</button></td></tr>)}</tbody></table></div>
+    <div className="border-t border-[var(--border)] px-5 py-3 sm:px-8"><button type="button" onClick={addRow} className="min-h-11 text-xs font-medium text-[var(--foreground)] underline underline-offset-2">+ Add row</button></div>
   </div>
 }
