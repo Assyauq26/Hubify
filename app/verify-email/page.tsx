@@ -10,16 +10,18 @@ export default async function VerifyEmailPage({
   const email = params.email ?? ''
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-neutral-50 px-5 py-10">
-      <section className="w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8">
-        <div className="mb-8">
-          <Link href="/" className="text-sm font-medium text-neutral-500 hover:text-neutral-950">HUBIFY</Link>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">Verify your email</h1>
-          <p className="mt-2 text-sm leading-6 text-neutral-500">
-            We sent a 6-digit verification code to your email address. Enter the latest code below to finish creating your account.
+    <main className="flex min-h-screen items-center justify-center bg-[var(--background)] px-5 py-10 text-[var(--foreground)] sm:px-8">
+      <section className="w-full max-w-md">
+        <div className="border-b border-[var(--border)] pb-7">
+          <Link href="/" className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--foreground)] hover:text-[var(--muted-foreground)]">HUBIFY</Link>
+          <h1 className="mt-8 text-[26px] font-semibold tracking-[-0.02em]">Verify your email</h1>
+          <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">
+            Enter the 8-digit verification code sent to your email address to finish creating your account.
           </p>
         </div>
-        <VerifyEmailForm email={email} />
+        <div className="py-7">
+          <VerifyEmailForm email={email} />
+        </div>
       </section>
     </main>
   )
