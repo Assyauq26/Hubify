@@ -20,110 +20,103 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   if (error || !project) notFound()
 
   const [{ data: notes }, { data: links }] = await Promise.all([
-    supabase
-      .from('notes')
-      .select('id, title, updated_at')
-      .eq('project_id', id)
-      .eq('user_id', user.id)
-      .order('updated_at', { ascending: false }),
-    supabase
-      .from('links')
-      .select('id, title, url, description, updated_at')
-      .eq('project_id', id)
-      .eq('user_id', user.id)
-      .order('updated_at', { ascending: false }),
+    supabase.from('notes').select('id, title, updated_at').eq('project_id', id).eq('user_id', user.id).order('updated_at', { ascending: false }),
+    supabase.from('links').select('id, title, url, description, updated_at').eq('project_id', id).eq('user_id', user.id).order('updated_at', { ascending: false }),
   ])
 
   return (
-    <main className="min-h-screen bg-neutral-50 px-5 py-8 text-neutral-950 sm:px-8">
-      <div className="mx-auto max-w-3xl">
-        <Link href="/dashboard" className="text-sm text-neutral-500 hover:text-neutral-950">← Back to projects</Link>
+    <div className="min-w-0 bg-[var(--background)] px-[var(--content-gutter)] py-8 text-[var(--foreground)] sm:px-8 lg:px-10 lg:py-10">
+      <div className="mx-auto max-w-5xl">
+        <Link href="/dashboard" className="inline-flex min-h-10 items-center text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
+          ← Back to projects
+        </Link>
 
-        <div className="mt-8 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <p className="text-sm font-medium text-neutral-500">Project</p>
-              <h1 className="mt-1 text-2xl font-semibold tracking-tight">{project.name}</h1>
+        <header className="mt-5 border-b border-[var(--border)] pb-7">
+          <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--muted-foreground)]">Project</p>
+          <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div className="min-w-0">
+              <h1 className="break-words text-[26px] font-semibold tracking-[-0.02em]">{project.name}</h1>
+              {project.description ? <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted-foreground)]">{project.description}</p> : null}
             </div>
-            <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-500">Workspace</span>
+            <span className="shrink-0 text-xs text-[var(--muted-foreground)]">Workspace</span>
           </div>
+        </header>
 
-          <form action={updateProject} className="mt-8 space-y-5">
-            <input type="hidden" name="id" value={project.id} />
-            <label className="block text-sm font-medium">
-              Project name
-              <input name="name" required defaultValue={project.name} className="mt-2 w-full rounded-lg border border-neutral-200 px-3 py-2.5 outline-none focus:border-neutral-950 focus:ring-2 focus:ring-neutral-950/10" />
-            </label>
-            <label className="block text-sm font-medium">
-              Description
-              <textarea name="description" rows={5} defaultValue={project.description ?? ''} className="mt-2 w-full resize-none rounded-lg border border-neutral-200 px-3 py-2.5 outline-none focus:border-neutral-950 focus:ring-2 focus:ring-neutral-950/10" />
-            </label>
-            <div className="flex justify-end pt-2">
-              <button type="submit" className="rounded-lg bg-neutral-950 px-4 py-2.5 text-sm font-medium text-white hover:bg-neutral-800">Save changes</button>
-            </div>
-          </form>
-
-          <div className="mt-6 border-t border-neutral-100 pt-6">
-            <form action={deleteProject}>
+        <section className="grid gap-8 py-8 lg:grid-cols-[minmax(0,1fr)_240px]">
+          <div>
+            <h2 className="text-[19px] font-semibold tracking-[-0.01em]">Project settings</h2>
+            <p className="mt-1 text-sm text-[var(--muted-foreground)]">Update the project name and description.</p>
+            <form action={updateProject} className="mt-6 space-y-5">
               <input type="hidden" name="id" value={project.id} />
-              <button type="submit" className="rounded-lg px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50">Delete project</button>
+              <label className="block text-sm font-medium">
+                Project name
+                <input name="name" required defaultValue={project.name} className="ui-input mt-2 w-full" />
+              </label>
+              <label className="block text-sm font-medium">
+                Description <span className="font-normal text-[var(--muted-foreground)]">(optional)</span>
+                <textarea name="description" rows={5} defaultValue={project.description ?? ''} className="ui-input mt-2 w-full resize-y" />
+              </label>
+              <button type="submit" className="ui-button-primary w-full sm:w-auto">Save changes</button>
             </form>
           </div>
-        </div>
 
-        <section className="mt-6 rounded-xl border border-neutral-200 bg-white p-5 sm:p-6">
-          <div className="flex items-start justify-between gap-4">
+          <aside className="border-t border-[var(--border)] pt-6 lg:border-l lg:border-t-0 lg:pl-8">
+            <p className="text-xs font-medium uppercase tracking-[0.1em] text-[var(--muted-foreground)]">Danger zone</p>
+            <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">Delete this project and its associated content.</p>
+            <form action={deleteProject} className="mt-4">
+              <input type="hidden" name="id" value={project.id} />
+              <button type="submit" className="ui-button-ghost min-h-10 text-[var(--error)] hover:bg-red-50">Delete project</button>
+            </form>
+          </aside>
+        </section>
+
+        <section className="border-t border-[var(--border)] py-8" aria-labelledby="notes-heading">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-sm font-medium">Notes</p>
-              <p className="mt-1 text-sm text-neutral-500">Keep rich-text documentation and project context here.</p>
+              <h2 id="notes-heading" className="text-[19px] font-semibold tracking-[-0.01em]">Notes</h2>
+              <p className="mt-1 text-sm text-[var(--muted-foreground)]">Rich-text documentation and project context.</p>
             </div>
-            <Link href={`/dashboard/projects/${id}/notes/new`} className="shrink-0 rounded-lg bg-neutral-950 px-3 py-2 text-sm font-medium text-white hover:bg-neutral-800">New note</Link>
+            <Link href={`/dashboard/projects/${id}/notes/new`} className="ui-button-primary inline-flex shrink-0 items-center justify-center">New note</Link>
           </div>
-
           {notes && notes.length > 0 ? (
-            <div className="mt-5 divide-y divide-neutral-100 border-t border-neutral-100">
+            <div className="mt-6 divide-y divide-[var(--border)] border-y border-[var(--border)] bg-[var(--surface)]">
               {notes.map((note) => (
-                <Link key={note.id} href={`/dashboard/projects/${id}/notes/${note.id}`} className="flex items-center justify-between gap-4 py-4 hover:bg-neutral-50">
+                <Link key={note.id} href={`/dashboard/projects/${id}/notes/${note.id}`} className="flex min-h-14 items-center justify-between gap-4 px-3 py-4 transition-colors hover:bg-[var(--surface-secondary)] sm:px-4">
                   <span className="min-w-0">
                     <span className="block truncate text-sm font-medium">{note.title}</span>
-                    <span className="mt-1 block text-xs text-neutral-400">Updated {new Date(note.updated_at).toLocaleString('en-ID')}</span>
+                    <span className="mt-1 block text-xs text-[var(--muted-foreground)]">Updated {new Date(note.updated_at).toLocaleString('en-ID')}</span>
                   </span>
-                  <span className="text-sm text-neutral-400">→</span>
+                  <span aria-hidden="true" className="shrink-0 text-[var(--muted)]">→</span>
                 </Link>
               ))}
             </div>
-          ) : (
-            <div className="mt-5 rounded-lg bg-neutral-50 p-5 text-sm text-neutral-500">No notes yet. Create your first project note.</div>
-          )}
+          ) : <div className="mt-6 border border-dashed border-[var(--border-strong)] p-6 text-sm text-[var(--muted-foreground)]">No notes yet. Create your first project note.</div>}
         </section>
 
-        <section className="mt-4 rounded-xl border border-neutral-200 bg-white p-5 sm:p-6">
-          <div className="flex items-start justify-between gap-4">
+        <section className="border-t border-[var(--border)] py-8" aria-labelledby="links-heading">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-sm font-medium">Links</p>
-              <p className="mt-1 text-sm text-neutral-500">Keep useful project resources in one place.</p>
+              <h2 id="links-heading" className="text-[19px] font-semibold tracking-[-0.01em]">Links</h2>
+              <p className="mt-1 text-sm text-[var(--muted-foreground)]">Useful project resources in one place.</p>
             </div>
-            <Link href={`/dashboard/projects/${id}/links/new`} className="shrink-0 rounded-lg border border-neutral-200 px-3 py-2 text-sm font-medium hover:bg-neutral-50">Add link</Link>
+            <Link href={`/dashboard/projects/${id}/links/new`} className="ui-button-secondary inline-flex shrink-0 items-center justify-center">Add link</Link>
           </div>
-
           {links && links.length > 0 ? (
-            <div className="mt-5 divide-y divide-neutral-100 border-t border-neutral-100">
+            <div className="mt-6 divide-y divide-[var(--border)] border-y border-[var(--border)] bg-[var(--surface)]">
               {links.map((link) => (
-                <div key={link.id} className="flex items-start justify-between gap-4 py-4">
+                <div key={link.id} className="flex items-start justify-between gap-4 px-3 py-4 sm:px-4">
                   <div className="min-w-0">
                     <Link href={`/dashboard/projects/${id}/links/${link.id}`} className="block truncate text-sm font-medium hover:underline">{link.title}</Link>
-                    {link.description ? <p className="mt-1 text-xs text-neutral-500">{link.description}</p> : null}
-                    <a href={link.url} target="_blank" rel="noreferrer" className="mt-1 block truncate text-xs text-neutral-400 hover:text-neutral-700">{link.url}</a>
+                    {link.description ? <p className="mt-1 break-words text-xs text-[var(--muted-foreground)]">{link.description}</p> : null}
+                    <a href={link.url} target="_blank" rel="noreferrer" className="mt-1 block truncate text-xs text-[var(--muted)] hover:text-[var(--foreground)]">{link.url}</a>
                   </div>
-                  <Link href={`/dashboard/projects/${id}/links/${link.id}`} className="shrink-0 text-sm text-neutral-400 hover:text-neutral-950">Edit</Link>
+                  <Link href={`/dashboard/projects/${id}/links/${link.id}`} className="min-h-10 shrink-0 inline-flex items-center text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)]">Edit</Link>
                 </div>
               ))}
             </div>
-          ) : (
-            <div className="mt-5 rounded-lg bg-neutral-50 p-5 text-sm text-neutral-500">No links yet. Add a repository, document, website, or other resource.</div>
-          )}
+          ) : <div className="mt-6 border border-dashed border-[var(--border-strong)] p-6 text-sm text-[var(--muted-foreground)]">No links yet. Add a repository, document, website, or other resource.</div>}
         </section>
       </div>
-    </main>
+    </div>
   )
 }

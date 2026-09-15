@@ -18,27 +18,46 @@ export function LinkForm({
   submitLabel: string
 }) {
   return (
-    <form action={action} className="space-y-5">
+    <form action={action} className="space-y-6">
       <input type="hidden" name="project_id" value={projectId} />
       {linkId ? <input type="hidden" name="id" value={linkId} /> : null}
 
       <label className="block text-sm font-medium">
         Title
-        <input name="title" required defaultValue={initialTitle} placeholder="GitHub repository" className="mt-2 w-full rounded-lg border border-neutral-200 px-3 py-2.5 outline-none focus:border-neutral-950 focus:ring-2 focus:ring-neutral-950/10" />
+        <input
+          name="title"
+          required
+          defaultValue={initialTitle}
+          placeholder="GitHub repository"
+          className="ui-input mt-2 w-full"
+        />
       </label>
 
       <label className="block text-sm font-medium">
         URL
-        <input name="url" type="url" required defaultValue={initialUrl} placeholder="https://github.com/..." className="mt-2 w-full rounded-lg border border-neutral-200 px-3 py-2.5 outline-none focus:border-neutral-950 focus:ring-2 focus:ring-neutral-950/10" />
+        <input
+          name="url"
+          type="url"
+          required
+          defaultValue={initialUrl}
+          placeholder="https://github.com/..."
+          className="ui-input mt-2 w-full"
+        />
       </label>
 
       <label className="block text-sm font-medium">
-        Description <span className="font-normal text-neutral-400">(optional)</span>
-        <textarea name="description" rows={4} defaultValue={initialDescription} placeholder="What is this link for?" className="mt-2 w-full resize-none rounded-lg border border-neutral-200 px-3 py-2.5 outline-none focus:border-neutral-950 focus:ring-2 focus:ring-neutral-950/10" />
+        Description <span className="font-normal text-[var(--muted-foreground)]">(optional)</span>
+        <textarea
+          name="description"
+          rows={4}
+          defaultValue={initialDescription}
+          placeholder="What is this link for?"
+          className="ui-input mt-2 w-full resize-none"
+        />
       </label>
 
-      <div className="flex justify-end">
-        <button type="submit" className="rounded-lg bg-neutral-950 px-4 py-2.5 text-sm font-medium text-white hover:bg-neutral-800">
+      <div className="flex justify-end border-t border-[var(--border)] pt-6">
+        <button type="submit" className="ui-button-primary">
           {submitLabel}
         </button>
       </div>

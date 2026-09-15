@@ -52,7 +52,7 @@ export async function signUp(_: AuthState, formData: FormData): Promise<AuthStat
   })
 
   if (error) {
-    return { error: error.message }
+    return { error: 'Unable to create your account. Please check your details and try again.' }
   }
 
   if (data.session) {

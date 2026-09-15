@@ -26,24 +26,27 @@ export default async function NewNotePage({ params }: { params: Promise<{ id: st
   if (!project) notFound()
 
   return (
-    <main className="min-h-screen bg-neutral-50 px-5 py-8 text-neutral-950 sm:px-8">
-      <div className="mx-auto max-w-3xl">
-        <Link href={`/dashboard/projects/${id}`} className="text-sm text-neutral-500 hover:text-neutral-950">← Back to {project.name}</Link>
-        <div className="mt-8 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8">
-          <div>
-            <p className="text-sm font-medium text-neutral-500">New note</p>
-            <h1 className="mt-1 text-2xl font-semibold tracking-tight">Create a project note</h1>
-          </div>
-          <div className="mt-8">
-            <NoteForm
-              action={createNote}
-              projectId={id}
-              initialTitle=""
-              initialContent={emptyContent}
-              submitLabel="Create note"
-            />
-          </div>
-        </div>
+    <main className="min-h-screen px-[var(--content-gutter)] py-8 sm:px-[var(--content-gutter)] lg:py-10">
+      <div className="mx-auto max-w-4xl">
+        <Link href={`/dashboard/projects/${id}`} className="text-sm font-medium text-[var(--muted)] transition-colors hover:text-[var(--foreground)]">
+          ← Back to {project.name}
+        </Link>
+
+        <header className="mt-8 max-w-2xl">
+          <p className="text-xs font-medium uppercase tracking-[0.08em] text-[var(--muted)]">New note</p>
+          <h1 className="mt-2 text-[26px] font-semibold leading-tight tracking-[-0.02em]">Create a project note</h1>
+          <p className="mt-2 text-sm text-[var(--muted)]">Capture documentation, decisions, and useful context for this project.</p>
+        </header>
+
+        <section className="mt-8 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-5 sm:p-7" aria-label="Create note form">
+          <NoteForm
+            action={createNote}
+            projectId={id}
+            initialTitle=""
+            initialContent={emptyContent}
+            submitLabel="Create note"
+          />
+        </section>
       </div>
     </main>
   )

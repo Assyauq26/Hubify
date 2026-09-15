@@ -37,37 +37,40 @@ export default async function NotePage({
   if (!note) notFound()
 
   return (
-    <main className="min-h-screen bg-neutral-50 px-5 py-8 text-neutral-950 sm:px-8">
-      <div className="mx-auto max-w-3xl">
-        <Link href={`/dashboard/projects/${id}`} className="text-sm text-neutral-500 hover:text-neutral-950">← Back to {project.name}</Link>
-        <div className="mt-8 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8">
-          <div>
-            <p className="text-sm font-medium text-neutral-500">Project note</p>
-            <h1 className="mt-1 text-2xl font-semibold tracking-tight">Edit note</h1>
-          </div>
-          <div className="mt-8">
-            <NoteForm
-              action={updateNote}
-              projectId={id}
-              noteId={note.id}
-              initialTitle={note.title}
-              initialContent={note.content as JsonValue}
-              submitLabel="Save note"
-            />
-          </div>
-          <div className="mt-8 border-t border-neutral-100 pt-6">
-            <form action={deleteNote}>
-              <input type="hidden" name="id" value={note.id} />
-              <input type="hidden" name="project_id" value={id} />
-              <button type="submit" className="rounded-lg px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50">
-                Delete note
-              </button>
-            </form>
-          </div>
-          <p className="mt-3 text-xs text-neutral-400">
-            Last updated {new Date(note.updated_at).toLocaleString('en-ID')}
-          </p>
-        </div>
+    <main className="min-h-screen px-[var(--content-gutter)] py-8 sm:py-10">
+      <div className="mx-auto max-w-4xl">
+        <Link href={`/dashboard/projects/${id}`} className="text-sm font-medium text-[var(--muted)] transition-colors hover:text-[var(--foreground)]">
+          ← Back to {project.name}
+        </Link>
+
+        <header className="mt-8">
+          <p className="text-xs font-medium uppercase tracking-[0.08em] text-[var(--muted)]">Project note</p>
+          <h1 className="mt-2 text-[26px] font-semibold leading-tight tracking-[-0.02em]">Edit note</h1>
+          <p className="mt-2 text-xs text-[var(--muted-foreground)]">Last updated {new Date(note.updated_at).toLocaleString('en-ID')}</p>
+        </header>
+
+        <section className="mt-8 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-5 sm:p-7" aria-label="Edit note form">
+          <NoteForm
+            action={updateNote}
+            projectId={id}
+            noteId={note.id}
+            initialTitle={note.title}
+            initialContent={note.content as JsonValue}
+            submitLabel="Save note"
+          />
+        </section>
+
+        <section className="mt-6 border-t border-[var(--border)] pt-6" aria-labelledby="danger-zone-title">
+          <h2 id="danger-zone-title" className="text-sm font-medium">Delete note</h2>
+          <p className="mt-1 text-sm text-[var(--muted)]">Permanently remove this note from the project.</p>
+          <form action={deleteNote} className="mt-4">
+            <input type="hidden" name="id" value={note.id} />
+            <input type="hidden" name="project_id" value={id} />
+            <button type="submit" className="min-h-10 rounded-[var(--radius-lg)] border border-[#fecaca] px-3.5 py-2 text-sm font-medium text-[var(--error)] transition-colors hover:bg-[var(--error-surface)]">
+              Delete note
+            </button>
+          </form>
+        </section>
       </div>
     </main>
   )

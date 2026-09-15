@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { AppShell } from '@/components/layout/AppShell'
 import { deleteLink, updateLink } from '../actions'
 import { LinkForm } from '../LinkForm'
 
@@ -28,13 +29,20 @@ export default async function LinkPage({ params }: { params: Promise<{ id: strin
   if (!link) notFound()
 
   return (
-    <main className="min-h-screen bg-neutral-50 px-5 py-8 text-neutral-950 sm:px-8">
-      <div className="mx-auto max-w-2xl">
-        <Link href={`/dashboard/projects/${id}`} className="text-sm text-neutral-500 hover:text-neutral-950">← Back to {project.name}</Link>
-        <div className="mt-8 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8">
-          <p className="text-sm font-medium text-neutral-500">Link Manager</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">Edit project link</h1>
-          <div className="mt-8">
+    <AppShell email={user.email}>
+      <main className="min-h-screen bg-[var(--background)] px-[var(--gutter)] py-8 text-[var(--foreground)] sm:px-8 lg:px-10">
+        <div className="mx-auto max-w-3xl">
+          <Link href={`/dashboard/projects/${id}`} className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
+            ← Back to {project.name}
+          </Link>
+
+          <header className="mt-7 border-b border-[var(--border)] pb-7">
+            <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--muted-foreground)]">Link manager</p>
+            <h1 className="mt-2 text-[26px] font-semibold tracking-[-0.02em]">Edit project link</h1>
+            <p className="mt-2 max-w-2xl truncate text-sm text-[var(--muted-foreground)]">{link.url}</p>
+          </header>
+
+          <section className="py-8">
             <LinkForm
               action={updateLink}
               projectId={id}
@@ -44,17 +52,22 @@ export default async function LinkPage({ params }: { params: Promise<{ id: strin
               initialDescription={link.description ?? ''}
               submitLabel="Save link"
             />
-          </div>
-          <div className="mt-8 border-t border-neutral-100 pt-6">
-            <form action={deleteLink}>
-              <input type="hidden" name="id" value={link.id} />
-              <input type="hidden" name="project_id" value={id} />
-              <button type="submit" className="rounded-lg px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50">Delete link</button>
-            </form>
-          </div>
-          <p className="mt-3 text-xs text-neutral-400">Last updated {new Date(link.updated_at).toLocaleString('en-ID')}</p>
+          </section>
+
+          <section className="border-t border-[var(--border)] py-6">
+            <div className="max-w-xl">
+              <p className="text-xs font-medium uppercase tracking-[0.1em] text-[var(--muted-foreground)]">Danger zone</p>
+              <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">Remove this link from the project.</p>
+              <form action={deleteLink} className="mt-4">
+                <input type="hidden" name="id" value={link.id} />
+                <input type="hidden" name="project_id" value={id} />
+                <button type="submit" className="ui-button-ghost text-[var(--error)] hover:bg-red-50">Delete link</button>
+              </form>
+            </div>
+            <p className="mt-5 text-xs text-[var(--muted)]">Last updated {new Date(link.updated_at).toLocaleString('en-ID')}</p>
+          </section>
         </div>
-      </div>
-    </main>
+      </main>
+    </AppShell>
   )
 }
