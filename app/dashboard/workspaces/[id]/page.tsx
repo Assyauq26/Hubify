@@ -42,7 +42,7 @@ export default async function WorkspacePage({ params }: { params: Promise<{ id: 
         ) : resources && resources.length > 0 ? (
           <div className="mt-8 divide-y divide-[var(--border)] border-y border-[var(--border)] bg-[var(--surface)]">
             {resources.map((resource) => (
-              <div key={resource.id} className="flex items-center justify-between gap-4 px-4 py-4 sm:px-5">
+              <Link key={resource.id} href={`/dashboard/resources/${resource.id}`} className="group flex items-center justify-between gap-4 px-4 py-4 transition-colors hover:bg-[var(--surface-secondary)] sm:px-5">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="truncate text-sm font-medium">{resource.title}</span>
@@ -50,8 +50,8 @@ export default async function WorkspacePage({ params }: { params: Promise<{ id: 
                   </div>
                   {resource.description ? <p className="mt-1 truncate text-xs text-[var(--muted-foreground)]">{resource.description}</p> : null}
                 </div>
-                {resource.is_favorite ? <span aria-label="Favorite" title="Favorite" className="shrink-0 text-sm">★</span> : null}
-              </div>
+                <span className="shrink-0 text-[var(--muted-foreground)] transition-transform group-hover:translate-x-0.5" aria-hidden="true">→</span>
+              </Link>
             ))}
           </div>
         ) : (
