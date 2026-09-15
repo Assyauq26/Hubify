@@ -107,20 +107,12 @@ export default function WorkspaceTabs({ workspaceId, resources }: Props) {
           const active = tab.resourceId === activeId
           return (
             <div key={tab.resourceId} className={`flex shrink-0 items-center border-r border-[var(--border)] ${active ? 'bg-[var(--background)]' : 'bg-[var(--surface)]'}`}>
-              <button
-                ref={(node) => { tabRefs.current[tab.resourceId] = node }}
-                type="button"
-                role="tab"
-                aria-selected={active}
-                aria-controls={`workspace-panel-${tab.resourceId}`}
-                onClick={() => void activate(tab.resourceId)}
-                className={`min-h-12 max-w-56 truncate px-4 text-left text-xs font-medium sm:max-w-64 ${active ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)] hover:text-[var(--foreground)]'}`}
-              >
+              <button ref={(node) => { tabRefs.current[tab.resourceId] = node }} type="button" role="tab" aria-selected={active} aria-controls={`workspace-panel-${tab.resourceId}`} tabIndex={active ? 0 : -1} onClick={() => void activate(tab.resourceId)} className={`min-h-12 max-w-56 truncate px-4 text-left text-xs font-medium ${active ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)] hover:text-[var(--foreground)]'}`}>
                 <span className="mr-2 text-[10px] uppercase tracking-[0.1em] text-[var(--muted-foreground)]">{tab.type}</span>
                 {tab.title}
                 {tab.dirty ? <span className="ml-1" aria-label="Unsaved changes">•</span> : null}
               </button>
-              <button type="button" aria-label={`Close ${tab.title}`} onClick={() => void close(tab.resourceId)} className="touch-target inline-flex items-center justify-center text-lg leading-none text-[var(--muted-foreground)] hover:bg-[var(--surface-secondary)] hover:text-[var(--foreground)]">×</button>
+              <button type="button" aria-label={`Close ${tab.title}`} onClick={() => void close(tab.resourceId)} className="touch-target inline-flex shrink-0 items-center justify-center text-lg leading-none text-[var(--muted-foreground)] hover:bg-[var(--surface-secondary)] hover:text-[var(--foreground)]">×</button>
             </div>
           )
         }) : <span className="flex min-h-12 items-center px-4 text-xs text-[var(--muted-foreground)]">No open resources</span>}
@@ -130,11 +122,7 @@ export default function WorkspaceTabs({ workspaceId, resources }: Props) {
       <nav aria-label="Resource type filter" className="mt-4 flex gap-1 overflow-x-auto border-b border-[var(--border)]">
         {filters.map((item) => {
           const active = filter === item.value
-          return (
-            <button key={item.value} type="button" onClick={() => setFilter(item.value)} aria-pressed={active} className={`min-h-11 shrink-0 border-b-2 px-3 text-xs font-medium ${active ? 'border-[var(--foreground)] text-[var(--foreground)]' : 'border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]'}`}>
-              {item.label}
-            </button>
-          )
+          return <button key={item.value} type="button" onClick={() => setFilter(item.value)} aria-pressed={active} className={`min-h-11 shrink-0 border-b-2 px-3 text-xs font-medium ${active ? 'border-[var(--foreground)] text-[var(--foreground)]' : 'border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]'}`}>{item.label}</button>
         })}
       </nav>
 
@@ -148,35 +136,17 @@ export default function WorkspaceTabs({ workspaceId, resources }: Props) {
         </div>
 
         <div className="mt-3 divide-y divide-[var(--border)] border-y border-[var(--border)] bg-[var(--surface)]">
-          {filteredResources.map((resource) => (
-            <button key={resource.id} type="button" onClick={() => void open(resource)} className="group flex min-h-12 w-full items-center justify-between gap-4 px-4 py-4 text-left hover:bg-[var(--surface-secondary)] sm:px-5">
-              <span className="min-w-0 truncate text-sm font-medium">{resource.title}</span>
-              <span className="shrink-0 text-[10px] uppercase tracking-[0.1em] text-[var(--muted-foreground)]">{resource.type}</span>
-            </button>
-          ))}
-          {filteredResources.length === 0 ? (
-            <div className="p-10 text-center">
-              <p className="text-sm font-semibold">No resources in this view</p>
-              <p className="mt-1 text-sm text-[var(--muted-foreground)]">Add a file, link, note, table, or list to start working here.</p>
-              <Link href={`/dashboard/workspaces/${workspaceId}/resources/new`} className="ui-button-secondary mt-5">Add resource</Link>
-            </div>
-          ) : null}
+          {filteredResources.map((resource) => <button key={resource.id} type="button" onClick={() => void open(resource)} className="group flex min-h-12 w-full items-center justify-between gap-4 px-4 py-4 text-left hover:bg-[var(--surface-secondary)] sm:px-5"><span className="min-w-0 truncate text-sm font-medium">{resource.title}</span><span className="shrink-0 text-[10px] uppercase tracking-[0.1em] text-[var(--muted-foreground)]">{resource.type}</span></button>)}
+          {filteredResources.length === 0 ? <div className="p-10 text-center"><p className="text-sm font-semibold">No resources in this view</p><p className="mt-1 text-sm text-[var(--muted-foreground)]">Add a file, link, note, table, or list to start working here.</p><Link href={`/dashboard/workspaces/${workspaceId}/resources/new`} className="ui-button-secondary mt-5">Add resource</Link></div> : null}
         </div>
       </div>
 
-      {activeResource ? (
-        <div id={`workspace-panel-${activeId}`} role="tabpanel" aria-label={activeResource.title} className="mt-6 overflow-hidden border border-[var(--border)] bg-[var(--surface)]">
-          {activeResource.type === 'note' ? <WorkspaceNoteEditor resourceId={activeId!} workspaceId={workspaceId} onDirtyChange={(dirty) => setDirty(activeId!, dirty)} onTitleChange={(title) => updateTitle(activeId!, title)} /> : null}
-          {activeResource.type === 'table' ? <WorkspaceTableEditor resourceId={activeId!} workspaceId={workspaceId} onDirtyChange={(dirty) => setDirty(activeId!, dirty)} onTitleChange={(title) => updateTitle(activeId!, title)} /> : null}
-          {activeResource.type === 'list' ? <WorkspaceListEditor resourceId={activeId!} workspaceId={workspaceId} onDirtyChange={(dirty) => setDirty(activeId!, dirty)} onTitleChange={(title) => updateTitle(activeId!, title)} /> : null}
-          {activeResource.type === 'file' || activeResource.type === 'link' ? <WorkspaceResourcePanel resourceId={activeId!} type={activeResource.type} title={activeResource.title} /> : null}
-        </div>
-      ) : (
-        <div className="mt-6 border border-dashed border-[var(--border-strong)] bg-[var(--surface)] p-10 text-center">
-          <p className="text-sm font-semibold">No resource is open</p>
-          <p className="mt-1 text-sm text-[var(--muted-foreground)]">Select a resource above to open it in your workspace.</p>
-        </div>
-      )}
+      {activeResource ? <div id={`workspace-panel-${activeId}`} role="tabpanel" aria-label={activeResource.title} className="mt-6 overflow-hidden border border-[var(--border)] bg-[var(--surface)]">
+        {activeResource.type === 'note' ? <WorkspaceNoteEditor resourceId={activeId!} workspaceId={workspaceId} onDirtyChange={(dirty) => setDirty(activeId!, dirty)} onTitleChange={(title) => updateTitle(activeId!, title)} /> : null}
+        {activeResource.type === 'table' ? <WorkspaceTableEditor resourceId={activeId!} workspaceId={workspaceId} onDirtyChange={(dirty) => setDirty(activeId!, dirty)} onTitleChange={(title) => updateTitle(activeId!, title)} /> : null}
+        {activeResource.type === 'list' ? <WorkspaceListEditor resourceId={activeId!} workspaceId={workspaceId} onDirtyChange={(dirty) => setDirty(activeId!, dirty)} onTitleChange={(title) => updateTitle(activeId!, title)} /> : null}
+        {activeResource.type === 'file' || activeResource.type === 'link' ? <WorkspaceResourcePanel resourceId={activeId!} type={activeResource.type} title={activeResource.title} /> : null}
+      </div> : <div className="mt-6 border border-dashed border-[var(--border-strong)] bg-[var(--surface)] p-10 text-center"><p className="text-sm font-semibold">No resource is open</p><p className="mt-1 text-sm text-[var(--muted-foreground)]">Select a resource above to open it in your workspace.</p></div>}
     </section>
   )
 }
