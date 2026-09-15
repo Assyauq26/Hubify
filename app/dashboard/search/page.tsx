@@ -5,17 +5,11 @@ import { searchResources } from '@/lib/resources/search'
 import type { ResourceType } from '@/lib/resources/types'
 
 const filters: Array<{ value: ResourceType | ''; label: string }> = [
-  { value: '', label: 'All' },
-  { value: 'file', label: 'Files' },
-  { value: 'link', label: 'Links' },
-  { value: 'note', label: 'Notes' },
-  { value: 'table', label: 'Tables' },
-  { value: 'list', label: 'Lists' },
+  { value: '', label: 'All' }, { value: 'file', label: 'Files' }, { value: 'link', label: 'Links' },
+  { value: 'note', label: 'Notes' }, { value: 'table', label: 'Tables' }, { value: 'list', label: 'Lists' },
 ]
 
-function isResourceType(value: string): value is ResourceType {
-  return ['file', 'link', 'note', 'table', 'list'].includes(value)
-}
+function isResourceType(value: string): value is ResourceType { return ['file', 'link', 'note', 'table', 'list'].includes(value) }
 
 export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string; type?: string }> }) {
   const params = await searchParams
@@ -37,55 +31,24 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         </header>
 
         <form method="get" className="mt-7 flex flex-col gap-3 sm:flex-row" role="search">
-          <label className="min-w-0 flex-1">
-            <span className="sr-only">Search resources</span>
-            <input name="q" defaultValue={query} autoFocus placeholder="Search files, links, notes…" className="ui-input" />
-          </label>
+          <label className="min-w-0 flex-1"><span className="sr-only">Search resources</span><input name="q" defaultValue={query} autoFocus placeholder="Search files, links, notes…" className="ui-input" /></label>
           {type ? <input type="hidden" name="type" value={type} /> : null}
-          <button type="submit" className="ui-button-primary inline-flex min-h-10 items-center justify-center sm:min-w-24">Search</button>
+          <button type="submit" className="ui-button-primary inline-flex min-h-11 items-center justify-center sm:min-w-24">Search</button>
         </form>
 
-        <nav aria-label="Search filters" className="mt-5 flex gap-2 overflow-x-auto pb-1">
+        <nav aria-label="Search filters" className="mt-5 flex gap-1 overflow-x-auto border-b border-[var(--border)]">
           {filters.map((filter) => {
             const active = (type ?? '') === filter.value
             const href = query ? `/dashboard/search?q=${encodeURIComponent(query)}${filter.value ? `&type=${filter.value}` : ''}` : filter.value ? `/dashboard/search?type=${filter.value}` : '/dashboard/search'
-            return <Link key={filter.value} href={href} aria-current={active ? 'page' : undefined} className={`inline-flex min-h-9 shrink-0 items-center border px-3 text-xs font-medium ${active ? 'border-[var(--foreground)] bg-[var(--foreground)] text-white' : 'border-[var(--border)] bg-[var(--surface)] text-[var(--muted)] hover:bg-[var(--surface-secondary)] hover:text-[var(--foreground)]'}`}>{filter.label}</Link>
+            return <Link key={filter.value} href={href} aria-current={active ? 'page' : undefined} className={`inline-flex min-h-11 shrink-0 items-center border-b-2 px-3 text-xs font-medium ${active ? 'border-[var(--foreground)] text-[var(--foreground)]' : 'border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]'}`}>{filter.label}</Link>
           })}
         </nav>
 
         <section className="mt-6" aria-live="polite">
-          {error ? (
-            <div role="alert" className="ui-error p-5 text-sm">We could not search your resources. Please try again.</div>
-          ) : query ? (
-            <>
-              <div className="mb-3 flex items-center justify-between gap-4 text-xs text-[var(--muted-foreground)]">
-                <span>{results.length} result{results.length === 1 ? '' : 's'} for “{query}”</span>
-                {type ? <span className="uppercase tracking-[0.08em]">{type}</span> : null}
-              </div>
-              {results.length ? (
-                <div className="divide-y divide-[var(--border)] border-y border-[var(--border)] bg-[var(--surface)]">
-                  {results.map((resource) => (
-                    <Link key={resource.id} href={`/dashboard/resources/${resource.id}`} className="group block px-4 py-4 transition-colors hover:bg-[var(--surface-secondary)] sm:px-5">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-medium uppercase tracking-[0.1em] text-[var(--muted-foreground)]">{resource.type}</span>
-                            {resource.isFavorite ? <span aria-label="Favorite">★</span> : null}
-                          </div>
-                          <h2 className="mt-1 truncate text-sm font-medium">{resource.title}</h2>
-                          {resource.description ? <p className="mt-1 line-clamp-2 text-sm leading-5 text-[var(--muted-foreground)]">{resource.description}</p> : null}
-                          <p className="mt-2 text-xs text-[var(--muted-foreground)]">{resource.workspaceName}</p>
-                        </div>
-                        <span aria-hidden="true" className="pt-0.5 text-[var(--muted)] transition-transform group-hover:translate-x-0.5">→</span>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              ) : <div className="border border-dashed border-[var(--border-strong)] p-10 text-center"><p className="text-sm font-medium">No resources found</p><p className="mt-1 text-sm text-[var(--muted-foreground)]">Try a different keyword or resource type.</p></div>}
-            </>
-          ) : (
-            <div className="border border-dashed border-[var(--border-strong)] p-10 text-center"><p className="text-sm font-medium">Search your Hubify library</p><p className="mt-1 text-sm text-[var(--muted-foreground)]">Enter a keyword to search resource titles and descriptions.</p></div>
-          )}
+          {error ? <div role="alert" className="ui-error p-5 text-sm">We could not search your resources. Please try again.</div> : query ? <>
+            <div className="mb-3 flex items-center justify-between gap-4 text-xs text-[var(--muted-foreground)]"><span>{results.length} result{results.length === 1 ? '' : 's'} for “{query}”</span>{type ? <span className="uppercase tracking-[0.08em]">{type}</span> : null}</div>
+            {results.length ? <div className="divide-y divide-[var(--border)] border-y border-[var(--border)] bg-[var(--surface)]">{results.map((resource) => <Link key={resource.id} href={`/dashboard/resources/${resource.id}`} className="group block px-4 py-4 transition-colors hover:bg-[var(--surface-secondary)] sm:px-5"><div className="flex items-start justify-between gap-4"><div className="min-w-0"><div className="flex items-center gap-2"><span className="text-[10px] font-medium uppercase tracking-[0.1em] text-[var(--muted-foreground)]">{resource.type}</span>{resource.isFavorite ? <span aria-label="Favorite">★</span> : null}</div><h2 className="mt-1 truncate text-sm font-medium">{resource.title}</h2>{resource.description ? <p className="mt-1 line-clamp-2 text-sm leading-5 text-[var(--muted-foreground)]">{resource.description}</p> : null}<p className="mt-2 text-xs text-[var(--muted-foreground)]">{resource.workspaceName}</p></div><span aria-hidden="true" className="pt-0.5 text-[var(--muted)] transition-transform group-hover:translate-x-0.5">→</span></div></Link>)}</div> : <div className="border border-dashed border-[var(--border-strong)] bg-[var(--surface)] p-10 text-center"><p className="text-sm font-medium">No resources found</p><p className="mt-1 text-sm text-[var(--muted-foreground)]">Try a different keyword or resource type.</p></div>}
+          </> : <div className="border border-dashed border-[var(--border-strong)] bg-[var(--surface)] p-10 text-center"><p className="text-sm font-medium">Search your Hubify library</p><p className="mt-1 text-sm text-[var(--muted-foreground)]">Enter a keyword to search resource titles and descriptions.</p></div>}
         </section>
       </div>
     </div>
