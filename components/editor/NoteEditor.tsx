@@ -16,6 +16,12 @@ export function NoteEditor({ initialContent, onContentChange }: NoteEditorProps)
     extensions: [StarterKit],
     content: initialContent,
     immediatelyRender: false,
+    editorProps: {
+      attributes: {
+        'aria-label': 'Note content',
+        role: 'textbox',
+      },
+    },
     onUpdate: ({ editor: currentEditor }) => {
       onContentChange(currentEditor.getJSON() as JsonValue)
     },
@@ -45,7 +51,7 @@ export function NoteEditor({ initialContent, onContentChange }: NoteEditorProps)
 
   return (
     <div className="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)]">
-      <div className="flex flex-wrap items-center gap-1 border-b border-[var(--border)] p-2">
+      <div className="flex flex-wrap items-center gap-1 border-b border-[var(--border)] p-2" role="toolbar" aria-label="Text formatting">
         <ToolbarButton label="Bold" active={editor.isActive('bold')} onClick={() => editor.chain().focus().toggleBold().run()}>B</ToolbarButton>
         <ToolbarButton label="Italic" active={editor.isActive('italic')} onClick={() => editor.chain().focus().toggleItalic().run()}><span className="italic">I</span></ToolbarButton>
         <ToolbarButton label="Strike" active={editor.isActive('strike')} onClick={() => editor.chain().focus().toggleStrike().run()}><span className="line-through">S</span></ToolbarButton>
@@ -59,19 +65,22 @@ export function NoteEditor({ initialContent, onContentChange }: NoteEditorProps)
       </div>
 
       <div className="flex flex-col gap-2 border-b border-[var(--border)] bg-[var(--surface-secondary)] p-2 sm:flex-row">
-        <input
-          value={linkUrl}
-          onChange={(event) => setLinkUrl(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') {
-              event.preventDefault()
-              setLink()
-            }
-          }}
-          placeholder="https://example.com"
-          aria-label="Link URL"
-          className="ui-input min-w-0 flex-1 bg-[var(--surface)] text-sm"
-        />
+        <label className="min-w-0 flex-1">
+          <span className="sr-only">Link URL</span>
+          <input
+            value={linkUrl}
+            onChange={(event) => setLinkUrl(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault()
+                setLink()
+              }
+            }}
+            placeholder="https://example.com"
+            aria-label="Link URL"
+            className="ui-input min-w-0 bg-[var(--surface)] text-sm"
+          />
+        </label>
         <button type="button" onClick={setLink} className="ui-button-secondary w-full sm:w-auto">Apply link</button>
       </div>
 
