@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
+const OTP_LENGTH = 8
 const RESEND_COOLDOWN_SECONDS = 60
 
 export default function VerifyEmailForm({ email }: { email: string }) {
@@ -28,15 +29,15 @@ export default function VerifyEmailForm({ email }: { email: string }) {
     setError('')
     setMessage('')
 
-    const normalizedToken = token.replace(/\D/g, '').slice(0, 6)
+    const normalizedToken = token.replace(/\D/g, '').slice(0, OTP_LENGTH)
 
     if (!email) {
       setError('Alamat email tidak ditemukan. Silakan daftar kembali.')
       return
     }
 
-    if (normalizedToken.length !== 6) {
-      setError('Masukkan kode verifikasi 6 digit.')
+    if (normalizedToken.length !== OTP_LENGTH) {
+      setError(`Masukkan kode verifikasi ${OTP_LENGTH} digit.`)
       return
     }
 
@@ -123,20 +124,20 @@ export default function VerifyEmailForm({ email }: { email: string }) {
             type="text"
             inputMode="numeric"
             autoComplete="one-time-code"
-            pattern="[0-9]{6}"
-            maxLength={6}
+            pattern={`[0-9]{${OTP_LENGTH}}`}
+            maxLength={OTP_LENGTH}
             value={token}
-            onChange={(event) => setToken(event.target.value.replace(/\D/g, '').slice(0, 6))}
-            placeholder="000000"
+            onChange={(event) => setToken(event.target.value.replace(/\D/g, '').slice(0, OTP_LENGTH))}
+            placeholder="00000000"
             className="mt-2 w-full rounded-lg border border-neutral-200 bg-white px-3 py-3 text-center text-lg font-semibold tracking-[0.35em] outline-none transition focus:border-neutral-950 focus:ring-2 focus:ring-neutral-950/10"
-            aria-label="6-digit verification code"
+            aria-label={`${OTP_LENGTH}-digit verification code`}
             required
           />
         </label>
 
         <button
           type="submit"
-          disabled={pending || token.length !== 6}
+          disabled={pending || token.length !== OTP_LENGTH}
           className="w-full rounded-lg bg-neutral-950 px-4 py-3 text-sm font-medium text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {pending ? 'Verifying…' : 'Verify email'}
