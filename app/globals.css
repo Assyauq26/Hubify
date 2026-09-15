@@ -48,6 +48,7 @@
   /* Layout */
   --content-gutter: 1rem;
   --content-gutter-desktop: 1.5rem;
+  --mobile-nav-height: 3.5rem;
 }
 
 * {
@@ -57,11 +58,15 @@
 html {
   min-height: 100%;
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
+  min-width: 320px;
+  max-width: 100%;
+  overflow-x: hidden;
   background: var(--background);
   color: var(--foreground);
   font-family: Geist, Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -209,6 +214,10 @@ select:focus-visible {
 }
 
 /* Tiptap / editorial note editor */
+.note-editor {
+  min-width: 0;
+}
+
 .note-editor .ProseMirror {
   min-height: 16rem;
   max-width: 48rem;
@@ -217,6 +226,7 @@ select:focus-visible {
   color: var(--foreground);
   font-size: 1rem;
   line-height: 1.75;
+  overflow-wrap: anywhere;
 }
 
 .note-editor .ProseMirror p {
@@ -264,11 +274,28 @@ select:focus-visible {
 }
 
 .note-editor .ProseMirror pre {
+  max-width: 100%;
   overflow-x: auto;
   border-radius: var(--radius-lg);
   background: var(--foreground);
   color: #f5f5f5;
   padding: 1rem;
+}
+
+@media (max-width: 479px) {
+  .ui-button-primary,
+  .ui-button-secondary {
+    min-height: 2.75rem;
+  }
+
+  .note-editor .ProseMirror {
+    min-height: 14rem;
+    font-size: 0.9375rem;
+  }
+
+  .note-editor .ProseMirror h1 { font-size: 1.5rem; }
+  .note-editor .ProseMirror h2 { font-size: 1.25rem; }
+  .note-editor .ProseMirror h3 { font-size: 1.1rem; }
 }
 
 @media (min-width: 640px) {
