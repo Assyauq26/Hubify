@@ -24,6 +24,13 @@ export function WorkspaceNoteEditor({ resourceId, workspaceId, onDirtyChange, on
   const [isPending, startTransition] = useTransition()
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const latestRef = useRef({ title: '', content: emptyContent })
+  const dirtyCallbackRef = useRef(onDirtyChange)
+  const titleCallbackRef = useRef(onTitleChange)
+
+  useEffect(() => {
+    dirtyCallbackRef.current = onDirtyChange
+    titleCallbackRef.current = onTitleChange
+  }, [onDirtyChange, onTitleChange])
 
   useEffect(() => {
     let cancelled = false
@@ -39,16 +46,17 @@ export function WorkspaceNoteEditor({ resourceId, workspaceId, onDirtyChange, on
       setTitle(result.note.title)
       setContent(result.note.content)
       latestRef.current = { title: result.note.title, content: result.note.content }
-      onDirtyChange?.(false)
+      dirtyCallbackRef.current?.(false)
       setSaveState('saved')
       setLoading(false)
     })
     return () => { cancelled = true }
-  }, [onDirtyChange, resourceId])
+  }, [resourceId])
 
-  const persist = useCallback((nextTitle: string, nextContent: JsonObject) => {
-    latestRef.current = { title: nextTitle, content: nextContent }
-    onDirtyChange?.(true)
+  const handleContentChange = useCallback((nextContent: JsonObject) => {
+    setContent(nextContent)
+    latestRef.current = { title: latestRef.current.title, content: nextContent }
+    dirtyCallbackRef.current?.(true)
     setSaveState('unsaved')
 
     if (saveTimer.current) clearTimeout(saveTimer.current)
@@ -66,11 +74,39 @@ export function WorkspaceNoteEditor({ resourceId, workspaceId, onDirtyChange, on
           setError(result.error)
           return
         }
-        onDirtyChange?.(false)
+        dirtyCallbackRef.current?.(false)
         setSaveState('saved')
       })
     }, 700)
-  }, [onDirtyChange, resourceId, workspaceId])
+  }, [resourceId, startTransition, workspaceId])
+
+  const handleTitleChange = useCallback((nextTitle: string) => {
+    setTitle(nextTitle)
+    titleCallbackRef.current?.(nextTitle || 'Untitled note')
+    latestRef.current = { title: nextTitle, content: latestRef.current.content }
+    dirtyCallbackRef.current?.(true)
+    setSaveState('unsaved')
+
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    saveTimer.current = setTimeout(() => {
+      const formData = new FormData()
+      formData.set('resource_id', resourceId)
+      formData.set('workspace_id', workspaceId)
+      formData.set('title', latestRef.current.title.trim() || 'Untitled note')
+      formData.set('content', JSON.stringify(latestRef.current.content))
+      startTransition(async () => {
+        setSaveState('saving')
+        const result = await saveWorkspaceNote(formData)
+        if (!result.ok) {
+          setSaveState('error')
+          setError(result.error)
+          return
+        }
+        dirtyCallbackRef.current?.(false)
+        setSaveState('saved')
+      })
+    }, 700)
+  }, [resourceId, startTransition, workspaceId])
 
   useEffect(() => () => {
     if (saveTimer.current) clearTimeout(saveTimer.current)
@@ -86,12 +122,7 @@ export function WorkspaceNoteEditor({ resourceId, workspaceId, onDirtyChange, on
           <span className="sr-only">Note title</span>
           <input
             value={title}
-            onChange={(event) => {
-              const next = event.target.value
-              setTitle(next)
-              onTitleChange?.(next || 'Untitled note')
-              persist(next, content)
-            }}
+            onChange={(event) => handleTitleChange(event.target.value)}
             maxLength={200}
             aria-label="Note title"
             className="w-full border-0 bg-transparent p-0 text-xl font-semibold tracking-[-0.02em] outline-none placeholder:text-[var(--muted-foreground)] focus:ring-0 sm:text-2xl"
@@ -100,7 +131,10 @@ export function WorkspaceNoteEditor({ resourceId, workspaceId, onDirtyChange, on
         </label>
         <div className="mt-2 flex min-h-5 items-center justify-between gap-4 text-xs text-[var(--muted-foreground)]" aria-live="polite">
           <span>{saveState === 'saving' || isPending ? 'Saving…' : saveState === 'unsaved' ? 'Unsaved changes' : saveState === 'error' ? 'Save failed' : 'Saved'}</span>
-          {saveState === 'error' ? <button type="button" onClick={() => persist(latestRef.current.title, latestRef.current.content)} className="underline underline-offset-2 hover:text-[var(--foreground)]">Retry</button> : null}
+          {saveState === 'error' ? <button type="button" onClick={() => {
+            if (saveTimer.current) clearTimeout(saveTimer.current)
+            handleContentChange(latestRef.current.content)
+          }} className="underline underline-offset-2 hover:text-[var(--foreground)]">Retry</button> : null}
         </div>
       </div>
 
@@ -109,10 +143,7 @@ export function WorkspaceNoteEditor({ resourceId, workspaceId, onDirtyChange, on
       <div className="mx-auto max-w-3xl px-4 py-6 sm:px-8 sm:py-8">
         <NoteEditor
           initialContent={content}
-          onContentChange={(nextContent) => {
-            setContent(nextContent)
-            persist(title, nextContent)
-          }}
+          onContentChange={handleContentChange}
         />
       </div>
     </div>
