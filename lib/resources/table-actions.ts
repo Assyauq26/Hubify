@@ -27,22 +27,22 @@ function asObject(value: unknown): Record<string, unknown> {
 
 function sanitizeTable(value: unknown): TableData {
   const source = asObject(value)
-  const columns = Array.isArray(source.columns) ? source.columns.flatMap((column, index) => {
+  const columns: TableColumn[] = Array.isArray(source.columns) ? source.columns.flatMap((column, index): TableColumn[] => {
     const item = asObject(column)
     const id = typeof item.id === 'string' && item.id ? item.id : `column-${index + 1}`
     const name = typeof item.name === 'string' && item.name ? item.name : `Column ${index + 1}`
-    const type = item.type === 'number' || item.type === 'boolean' ? item.type : 'text'
+    const type: TableColumn['type'] = item.type === 'number' || item.type === 'boolean' ? item.type : 'text'
     return [{ id, name, type }]
   }) : []
   const safeColumns = columns.length ? columns : defaultTable.columns
-  const rows = Array.isArray(source.rows) ? source.rows.map((row) => {
+  const rows: TableRow[] = Array.isArray(source.rows) ? source.rows.map((row) => {
     const sourceRow = asObject(row)
     return Object.fromEntries(safeColumns.map((column) => {
-      const value = sourceRow[column.id]
-      if (column.type === 'number') return [column.id, typeof value === 'number' ? value : value === null ? null : Number(value) || null]
-      if (column.type === 'boolean') return [column.id, value === true]
-      return [column.id, typeof value === 'string' ? value : value == null ? '' : String(value)]
-    }))
+      const cellValue = sourceRow[column.id]
+      if (column.type === 'number') return [column.id, typeof cellValue === 'number' ? cellValue : cellValue === null ? null : Number(cellValue) || null]
+      if (column.type === 'boolean') return [column.id, cellValue === true]
+      return [column.id, typeof cellValue === 'string' ? cellValue : cellValue == null ? '' : String(cellValue)]
+    })) as TableRow
   }) : []
   return { columns: safeColumns, rows }
 }
