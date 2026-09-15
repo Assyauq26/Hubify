@@ -1,3 +1,5 @@
+'use server'
+
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
@@ -16,8 +18,6 @@ function safeFileName(fileName: string) {
 }
 
 export async function createResource(formData: FormData) {
-  'use server'
-
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { ok: false as const, error: 'You must be signed in.' }
@@ -58,8 +58,6 @@ export async function createResource(formData: FormData) {
 }
 
 export async function prepareFileResource(formData: FormData) {
-  'use server'
-
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { ok: false as const, error: 'You must be signed in.' }
@@ -117,8 +115,6 @@ export async function prepareFileResource(formData: FormData) {
 }
 
 export async function finalizeFileResource(formData: FormData) {
-  'use server'
-
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { ok: false as const, error: 'You must be signed in.' }
@@ -168,8 +164,6 @@ export async function finalizeFileResource(formData: FormData) {
 }
 
 export async function deleteResource(formData: FormData) {
-  'use server'
-
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { ok: false as const }
@@ -191,8 +185,6 @@ export async function deleteResource(formData: FormData) {
 }
 
 export async function toggleResourceFavorite(formData: FormData) {
-  'use server'
-
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -222,8 +214,6 @@ export async function toggleResourceFavorite(formData: FormData) {
 }
 
 export async function markResourceOpened(resourceId: string) {
-  'use server'
-
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return
