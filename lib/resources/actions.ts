@@ -20,14 +20,14 @@ export async function createResource(formData: FormData) {
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  if (!user) return { ok: false as const, error: 'You must be signed in.' }
 
   const workspaceId = readText(formData, 'workspace_id')
   const title = readText(formData, 'title')
   const type = readText(formData, 'type')
   const description = readText(formData, 'description') || null
 
-  if (!workspaceId || !title || !isResourceType(type)) return
+  if (!workspaceId || !title || !isResourceType(type)) return { ok: false as const, error: 'Resource type, workspace, and title are required.' }
 
   const { data: workspace } = await supabase
     .from('workspaces')
@@ -36,9 +36,9 @@ export async function createResource(formData: FormData) {
     .eq('user_id', user.id)
     .single()
 
-  if (!workspace) return
+  if (!workspace) return { ok: false as const, error: 'Workspace not found.' }
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('resources')
     .insert({
       workspace_id: workspaceId,
@@ -51,8 +51,10 @@ export async function createResource(formData: FormData) {
     .select('id')
     .single()
 
+  if (error || !data) return { ok: false as const, error: error?.message ?? 'Could not create the resource.' }
+
   revalidatePath(`/dashboard/workspaces/${workspaceId}`)
-  if (data) redirect(`/dashboard/workspaces/${workspaceId}`)
+  return { ok: true as const, resourceId: data.id, workspaceId }
 }
 
 export async function prepareFileResource(formData: FormData) {
@@ -124,7 +126,11 @@ export async function finalizeFileResource(formData: FormData) {
   const resourceId = readText(formData, 'resource_id')
   const workspaceId = readText(formData, 'workspace_id')
   const storagePath = readText(formData, 'storage_path')
-  if (!resourceId || !workspaceId || !storagePath) return { ok: false as const, error: 'Upload information is incomplete.' }
+  const expectedPrefix = `${user.id}/${workspaceId}/${resourceId}/`
+
+  if (!resourceId || !workspaceId || !storagePath || !storagePath.startsWith(expectedPrefix)) {
+    return { ok: false as const, error: 'Upload information is invalid.' }
+  }
 
   const { data: resource } = await supabase
     .from('resources')
