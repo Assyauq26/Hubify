@@ -1,21 +1,15 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { signOut } from './actions'
+import { AppShell } from '@/components/layout/AppShell'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: claimsData } = await supabase.auth.getClaims()
-
-  if (!claimsData?.claims?.sub) {
-    redirect('/login')
-  }
+  if (!claimsData?.claims?.sub) redirect('/login')
 
   const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
+  if (!user) redirect('/login')
 
   const { data: projects, error } = await supabase
     .from('projects')
@@ -23,49 +17,45 @@ export default async function DashboardPage() {
     .order('updated_at', { ascending: false })
 
   return (
-    <main className="min-h-screen bg-neutral-50 text-neutral-950">
-      <header className="border-b border-neutral-200 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 sm:px-8">
-          <Link href="/dashboard" className="text-sm font-semibold tracking-wide">HUBIFY</Link>
-          <div className="flex items-center gap-3">
-            <span className="hidden max-w-56 truncate text-sm text-neutral-500 sm:block">{user.email}</span>
-            <form action={signOut}>
-              <button type="submit" className="rounded-lg border border-neutral-200 px-3 py-2 text-sm font-medium hover:bg-neutral-50">Sign out</button>
-            </form>
-          </div>
-        </div>
-      </header>
-
-      <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8 sm:py-10">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <AppShell email={user.email}>
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+        <header className="flex flex-col gap-5 border-b border-[var(--border)] pb-7 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm font-medium text-neutral-500">Workspace</p>
-            <h1 className="mt-1 text-3xl font-semibold tracking-tight">Your projects</h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-neutral-500">Keep project notes, documentation, and useful links organized in one place.</p>
+            <p className="text-xs font-medium uppercase tracking-[0.08em] text-[var(--muted)]">Workspace</p>
+            <h1 className="mt-2 text-[26px] font-semibold leading-[1.3] tracking-[-0.02em]">Your projects</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted)]">Keep project notes, documentation, and useful links organized in one place.</p>
           </div>
-          <Link href="/dashboard/projects/new" className="inline-flex w-fit rounded-lg bg-neutral-950 px-4 py-2.5 text-sm font-medium text-white hover:bg-neutral-800">New project</Link>
-        </div>
+          <Link href="/dashboard/projects/new" className="ui-button-primary inline-flex w-fit items-center justify-center">New project</Link>
+        </header>
 
         {error ? (
-          <div className="mt-8 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">Unable to load projects: {error.message}</div>
+          <div role="alert" className="ui-error mt-6 p-4 text-sm">Unable to load projects: {error.message}</div>
         ) : projects?.length ? (
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <section aria-label="Projects" className="mt-7 divide-y divide-[var(--border)] border-y border-[var(--border)] bg-[var(--surface)]">
             {projects.map((project) => (
-              <Link key={project.id} href={`/dashboard/projects/${project.id}`} className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow">
-                <h2 className="font-semibold">{project.name}</h2>
-                <p className="mt-2 min-h-10 text-sm leading-5 text-neutral-500">{project.description || 'No description yet.'}</p>
-                <p className="mt-5 text-xs text-neutral-400">Updated {new Intl.DateTimeFormat('en', { dateStyle: 'medium' }).format(new Date(project.updated_at))}</p>
+              <Link key={project.id} href={`/dashboard/projects/${project.id}`} className="group block px-4 py-5 transition-colors hover:bg-[var(--surface-secondary)] sm:px-5">
+                <div className="flex items-start justify-between gap-5">
+                  <div className="min-w-0">
+                    <h2 className="truncate text-[15px] font-medium leading-5">{project.name}</h2>
+                    <p className="mt-1.5 line-clamp-2 text-sm leading-5 text-[var(--muted)]">{project.description || 'No description yet.'}</p>
+                    <p className="mt-3 text-xs text-[var(--muted-foreground)]">Updated {new Intl.DateTimeFormat('en', { dateStyle: 'medium' }).format(new Date(project.updated_at))}</p>
+                  </div>
+                  <span aria-hidden="true" className="pt-0.5 text-[var(--muted-foreground)] transition-transform group-hover:translate-x-0.5">→</span>
+                </div>
               </Link>
             ))}
-          </div>
+          </section>
         ) : (
-          <div className="mt-8 rounded-xl border border-dashed border-neutral-300 bg-white p-10 text-center">
-            <h2 className="font-semibold">No projects yet</h2>
-            <p className="mt-2 text-sm text-neutral-500">Create your first project to start building your knowledge hub.</p>
-            <Link href="/dashboard/projects/new" className="mt-5 inline-flex rounded-lg bg-neutral-950 px-4 py-2.5 text-sm font-medium text-white hover:bg-neutral-800">Create first project</Link>
-          </div>
+          <section className="mt-7 flex min-h-72 flex-col items-center justify-center border-y border-[var(--border)] bg-[var(--surface)] px-6 py-12 text-center">
+            <div className="max-w-md">
+              <p className="text-xs font-medium uppercase tracking-[0.08em] text-[var(--muted)]">Projects</p>
+              <h2 className="mt-2 text-lg font-semibold tracking-[-0.01em]">No projects yet</h2>
+              <p className="mt-2 text-sm leading-6 text-[var(--muted)]">Create your first project to start building your knowledge hub.</p>
+              <Link href="/dashboard/projects/new" className="ui-button-primary mt-5 inline-flex items-center justify-center">Create first project</Link>
+            </div>
+          </section>
         )}
       </div>
-    </main>
+    </AppShell>
   )
 }
