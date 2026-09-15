@@ -48,8 +48,9 @@ export function ResourceCreationForm({ workspaceId }: { workspaceId: string }) {
       return
     }
 
+    const formData = new FormData(event.currentTarget)
+
     if (type !== 'file') {
-      const formData = new FormData(event.currentTarget)
       startTransition(async () => {
         const result = await createResource(formData)
         if (!result.ok) {
@@ -68,7 +69,7 @@ export function ResourceCreationForm({ workspaceId }: { workspaceId: string }) {
 
     startTransition(async () => {
       setStatus('Preparing upload…')
-      const prepared = await prepareFileResource(new FormData(event.currentTarget))
+      const prepared = await prepareFileResource(formData)
       if (!prepared.ok) {
         setStatus(null)
         setError(prepared.error)
