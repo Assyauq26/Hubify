@@ -27,7 +27,7 @@ export default async function WorkspacePage({ params }: { params: Promise<{ id: 
               <h1 className="break-words text-[28px] font-semibold tracking-[-0.025em]">{workspace.name}</h1>
               {workspace.description ? <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted-foreground)]">{workspace.description}</p> : null}
             </div>
-            <button type="button" disabled className="ui-button-secondary min-h-10 shrink-0 opacity-60" title="Resource creation is implemented in the next phase">Add resource</button>
+            <Link href={`/dashboard/workspaces/${id}/resources/new`} className="ui-button-primary inline-flex min-h-10 shrink-0 items-center justify-center">+ Add resource</Link>
           </div>
         </header>
 
@@ -57,7 +57,8 @@ export default async function WorkspacePage({ params }: { params: Promise<{ id: 
         ) : (
           <div className="mt-8 border border-dashed border-[var(--border-strong)] p-10 text-center">
             <h2 className="text-sm font-semibold">This workspace is empty</h2>
-            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[var(--muted-foreground)]">Files, links, notes, tables, and lists will appear here as resources.</p>
+            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[var(--muted-foreground)]">Upload a file or add a link, note, table, or list to start working here.</p>
+            <Link href={`/dashboard/workspaces/${id}/resources/new`} className="ui-button-primary mt-5 inline-flex min-h-10 items-center justify-center">Add first resource</Link>
           </div>
         )}
       </div>
