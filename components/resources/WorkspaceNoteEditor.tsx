@@ -24,7 +24,6 @@ export function WorkspaceNoteEditor({ resourceId, workspaceId, onDirtyChange, on
   const [isPending, startTransition] = useTransition()
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const latestRef = useRef({ title: '', content: emptyContent })
-  const dirtyRef = useRef(false)
 
   useEffect(() => {
     let cancelled = false
@@ -40,7 +39,6 @@ export function WorkspaceNoteEditor({ resourceId, workspaceId, onDirtyChange, on
       setTitle(result.note.title)
       setContent(result.note.content)
       latestRef.current = { title: result.note.title, content: result.note.content }
-      dirtyRef.current = false
       onDirtyChange?.(false)
       setSaveState('saved')
       setLoading(false)
@@ -50,7 +48,6 @@ export function WorkspaceNoteEditor({ resourceId, workspaceId, onDirtyChange, on
 
   const persist = useCallback((nextTitle: string, nextContent: JsonObject) => {
     latestRef.current = { title: nextTitle, content: nextContent }
-    dirtyRef.current = true
     onDirtyChange?.(true)
     setSaveState('unsaved')
 
@@ -69,7 +66,6 @@ export function WorkspaceNoteEditor({ resourceId, workspaceId, onDirtyChange, on
           setError(result.error)
           return
         }
-        dirtyRef.current = false
         onDirtyChange?.(false)
         setSaveState('saved')
       })
