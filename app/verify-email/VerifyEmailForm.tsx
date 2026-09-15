@@ -18,9 +18,7 @@ export default function VerifyEmailForm({ email }: { email: string }) {
 
   useEffect(() => {
     if (cooldown <= 0) return
-    const timer = window.setInterval(() => {
-      setCooldown((current) => Math.max(0, current - 1))
-    }, 1000)
+    const timer = window.setInterval(() => setCooldown((current) => Math.max(0, current - 1)), 1000)
     return () => window.clearInterval(timer)
   }, [cooldown])
 
@@ -28,30 +26,24 @@ export default function VerifyEmailForm({ email }: { email: string }) {
     event.preventDefault()
     setError('')
     setMessage('')
-
     const normalizedToken = token.replace(/\D/g, '').slice(0, OTP_LENGTH)
 
     if (!email) {
-      setError('Alamat email tidak ditemukan. Silakan daftar kembali.')
+      setError('Email address was not found. Please register again.')
       return
     }
-
     if (normalizedToken.length !== OTP_LENGTH) {
-      setError(`Masukkan kode verifikasi ${OTP_LENGTH} digit.`)
+      setError(`Enter the ${OTP_LENGTH}-digit verification code.`)
       return
     }
 
     setPending(true)
     const supabase = createClient()
-    const { error: verifyError } = await supabase.auth.verifyOtp({
-      email,
-      token: normalizedToken,
-      type: 'email',
-    })
+    const { error: verifyError } = await supabase.auth.verifyOtp({ email, token: normalizedToken, type: 'email' })
     setPending(false)
 
     if (verifyError) {
-      setError('Kode verifikasi tidak valid atau sudah kedaluwarsa. Gunakan kode terbaru dari email.')
+      setError('The verification code is invalid or expired. Use the latest code from your email.')
       return
     }
 
@@ -61,7 +53,6 @@ export default function VerifyEmailForm({ email }: { email: string }) {
 
   async function handleResend() {
     if (!email || cooldown > 0 || resending) return
-
     setError('')
     setMessage('')
     setResending(true)
@@ -70,54 +61,38 @@ export default function VerifyEmailForm({ email }: { email: string }) {
     const { error: resendError } = await supabase.auth.resend({
       type: 'signup',
       email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/verify-email`,
-      },
+      options: { emailRedirectTo: `${window.location.origin}/verify-email` },
     })
-
     setResending(false)
 
     if (resendError) {
-      setError(resendError.message)
+      setError('Unable to resend the verification code. Please try again.')
       return
     }
 
-    setMessage('Kode baru sudah dikirim. Gunakan kode terbaru dan jangan gunakan kode lama.')
+    setMessage('A new code has been sent. Use the latest code and ignore older codes.')
     setCooldown(RESEND_COOLDOWN_SECONDS)
   }
 
   if (!email) {
     return (
       <div className="space-y-4">
-        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700">
-          Alamat email tidak ditemukan. Silakan kembali ke halaman pendaftaran.
-        </p>
-        <a href="/register" className="block w-full rounded-lg bg-neutral-950 px-4 py-3 text-center text-sm font-medium text-white hover:bg-neutral-800">
-          Back to registration
-        </a>
+        <div role="alert" className="ui-error">Email address was not found. Please return to registration.</div>
+        <a href="/register" className="ui-button-primary flex w-full justify-center">Back to registration</a>
       </div>
     )
   }
 
   return (
-    <div className="space-y-5">
-      <div className="rounded-lg bg-neutral-50 px-3 py-2.5 text-sm text-neutral-600">
-        Code sent to <span className="font-medium text-neutral-950">{email}</span>
+    <div className="space-y-6">
+      <div className="border border-[var(--border)] bg-[var(--surface-secondary)] px-4 py-3 text-sm text-[var(--muted-foreground)]">
+        Code sent to <span className="font-medium text-[var(--foreground)]">{email}</span>
       </div>
 
-      {error ? (
-        <div role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700">
-          {error}
-        </div>
-      ) : null}
+      {error ? <div role="alert" className="ui-error">{error}</div> : null}
+      {message ? <div role="status" className="ui-success">{message}</div> : null}
 
-      {message ? (
-        <div role="status" className="rounded-lg border border-green-200 bg-green-50 px-3 py-2.5 text-sm text-green-700">
-          {message}
-        </div>
-      ) : null}
-
-      <form onSubmit={handleVerify} className="space-y-4">
+      <form onSubmit={handleVerify} className="space-y-5">
         <label className="block text-sm font-medium">
           Verification code
           <input
@@ -129,35 +104,26 @@ export default function VerifyEmailForm({ email }: { email: string }) {
             value={token}
             onChange={(event) => setToken(event.target.value.replace(/\D/g, '').slice(0, OTP_LENGTH))}
             placeholder="00000000"
-            className="mt-2 w-full rounded-lg border border-neutral-200 bg-white px-3 py-3 text-center text-lg font-semibold tracking-[0.35em] outline-none transition focus:border-neutral-950 focus:ring-2 focus:ring-neutral-950/10"
+            className="ui-input mt-2 w-full text-center text-lg font-semibold tracking-[0.35em]"
             aria-label={`${OTP_LENGTH}-digit verification code`}
             required
           />
         </label>
 
-        <button
-          type="submit"
-          disabled={pending || token.length !== OTP_LENGTH}
-          className="w-full rounded-lg bg-neutral-950 px-4 py-3 text-sm font-medium text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
-        >
+        <button type="submit" disabled={pending || token.length !== OTP_LENGTH} className="ui-button-primary w-full justify-center disabled:cursor-not-allowed disabled:opacity-60">
           {pending ? 'Verifying…' : 'Verify email'}
         </button>
       </form>
 
-      <div className="space-y-3 text-center text-sm text-neutral-500">
+      <div className="border-t border-[var(--border)] pt-5 text-center text-sm text-[var(--muted-foreground)]">
         <p>Didn&apos;t receive the code?</p>
-        <button
-          type="button"
-          onClick={handleResend}
-          disabled={resending || cooldown > 0}
-          className="font-medium text-neutral-950 hover:underline disabled:cursor-not-allowed disabled:no-underline disabled:opacity-50"
-        >
+        <button type="button" onClick={handleResend} disabled={resending || cooldown > 0} className="mt-2 font-medium text-[var(--foreground)] hover:underline disabled:cursor-not-allowed disabled:no-underline disabled:opacity-50">
           {resending ? 'Sending…' : cooldown > 0 ? `Resend code in ${cooldown}s` : 'Resend code'}
         </button>
       </div>
 
-      <p className="text-center text-sm text-neutral-500">
-        <a href="/login" className="font-medium text-neutral-950 hover:underline">Back to sign in</a>
+      <p className="text-center text-sm text-[var(--muted-foreground)]">
+        <a href="/login" className="font-medium text-[var(--foreground)] hover:underline">Back to sign in</a>
       </p>
     </div>
   )
