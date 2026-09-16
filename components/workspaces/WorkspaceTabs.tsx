@@ -100,7 +100,7 @@ export default function WorkspaceTabs({ workspaceId, resources }: Props) {
               <button type="button" aria-label={`Close ${tab.title}`} onClick={() => void close(tab.resourceId)} className="touch-target inline-flex h-11 w-11 shrink-0 items-center justify-center text-lg leading-none text-[var(--muted-foreground)] outline-none hover:bg-[var(--surface-secondary)] hover:text-[var(--foreground)] focus-visible:bg-[var(--surface-secondary)] focus-visible:text-[var(--foreground)] focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-inset">×</button>
             </div>
           )
-        }) : <span className="flex min-h-12 items-center px-4 text-xs text-[var(--muted-foreground)]">No open resources</span>}
+        }) : null}
         <Link href={`/dashboard/workspaces/${workspaceId}/resources/new`} className="ml-auto flex min-h-12 shrink-0 items-center px-4 text-xs font-medium text-[var(--muted)] outline-none hover:bg-[var(--surface-secondary)] hover:text-[var(--foreground)] focus-visible:bg-[var(--surface-secondary)] focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-inset">+ Add</Link>
       </div>
 
@@ -111,20 +111,18 @@ export default function WorkspaceTabs({ workspaceId, resources }: Props) {
         })}
       </nav>
 
-      <div className="mt-6">
-        <div className="flex items-center justify-between gap-4"><div><p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--muted-foreground)]">Resources</p><p className="mt-1 text-sm text-[var(--muted)]">Select a resource to open it as a tab.</p></div><span className="shrink-0 text-xs text-[var(--muted-foreground)]">{filteredResources.length}</span></div>
-        <div className="mt-3 divide-y divide-[var(--border)] border-y border-[var(--border)] bg-[var(--surface)]">
-          {filteredResources.map((resource) => <button key={resource.id} type="button" onClick={() => void open(resource)} className="group flex min-h-12 w-full items-center justify-between gap-4 px-4 py-4 text-left outline-none transition-colors hover:bg-[var(--surface-secondary)] focus-visible:bg-[var(--surface-secondary)] focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-inset sm:px-5"><span className="min-w-0 truncate text-sm font-medium">{resource.title}</span><span className="shrink-0 text-[10px] uppercase tracking-[0.1em] text-[var(--muted-foreground)]">{resource.type}</span></button>)}
-          {filteredResources.length === 0 ? <div className="p-10 text-center"><p className="text-sm font-semibold">No resources in this view</p><p className="mt-1 text-sm text-[var(--muted-foreground)]">Add a file, link, note, table, or list to start working here.</p><Link href={`/dashboard/workspaces/${workspaceId}/resources/new`} className="ui-button-secondary mt-5">Add resource</Link></div> : null}
-        </div>
+      <div className="mt-4 min-h-[calc(100vh-220px)] overflow-hidden border border-[var(--border)] bg-[var(--surface)]">
+        {activeResource ? (
+          <div id={`workspace-panel-${activeId}`} role="tabpanel" aria-labelledby={`workspace-tab-${activeId}`} tabIndex={0} className="min-h-[calc(100vh-220px)] overflow-hidden bg-[var(--surface)] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--focus-ring)]">
+            {activeResource.type === 'note' ? <WorkspaceNoteEditor resourceId={activeId!} workspaceId={workspaceId} onDirtyChange={(dirty) => setDirty(activeId!, dirty)} onTitleChange={(title) => updateTitle(activeId!, title)} /> : null}
+            {activeResource.type === 'table' ? <WorkspaceTableEditor resourceId={activeId!} workspaceId={workspaceId} onDirtyChange={(dirty) => setDirty(activeId!, dirty)} onTitleChange={(title) => updateTitle(activeId!, title)} /> : null}
+            {activeResource.type === 'list' ? <WorkspaceListEditor resourceId={activeId!} workspaceId={workspaceId} onDirtyChange={(dirty) => setDirty(activeId!, dirty)} onTitleChange={(title) => updateTitle(activeId!, title)} /> : null}
+            {activeResource.type === 'file' || activeResource.type === 'link' ? <WorkspaceResourcePanel resourceId={activeId!} type={activeResource.type} title={activeResource.title} /> : null}
+          </div>
+        ) : (
+          <div className="flex min-h-[calc(100vh-220px)] items-center justify-center p-10 text-center"><div><p className="text-sm font-semibold">Select a resource</p><p className="mt-1 text-sm text-[var(--muted-foreground)]">Open a resource from the tabs above or add a new one.</p><Link href={`/dashboard/workspaces/${workspaceId}/resources/new`} className="ui-button-secondary mt-5 inline-flex min-h-11 items-center justify-center">Add resource</Link></div></div>
+        )}
       </div>
-
-      {activeResource ? <div id={`workspace-panel-${activeId}`} role="tabpanel" aria-labelledby={`workspace-tab-${activeId}`} tabIndex={0} className="mt-6 overflow-hidden border border-[var(--border)] bg-[var(--surface)]">
-        {activeResource.type === 'note' ? <WorkspaceNoteEditor resourceId={activeId!} workspaceId={workspaceId} onDirtyChange={(dirty) => setDirty(activeId!, dirty)} onTitleChange={(title) => updateTitle(activeId!, title)} /> : null}
-        {activeResource.type === 'table' ? <WorkspaceTableEditor resourceId={activeId!} workspaceId={workspaceId} onDirtyChange={(dirty) => setDirty(activeId!, dirty)} onTitleChange={(title) => updateTitle(activeId!, title)} /> : null}
-        {activeResource.type === 'list' ? <WorkspaceListEditor resourceId={activeId!} workspaceId={workspaceId} onDirtyChange={(dirty) => setDirty(activeId!, dirty)} onTitleChange={(title) => updateTitle(activeId!, title)} /> : null}
-        {activeResource.type === 'file' || activeResource.type === 'link' ? <WorkspaceResourcePanel resourceId={activeId!} type={activeResource.type} title={activeResource.title} /> : null}
-      </div> : <div className="mt-6 border border-dashed border-[var(--border-strong)] bg-[var(--surface)] p-10 text-center"><p className="text-sm font-semibold">No resource is open</p><p className="mt-1 text-sm text-[var(--muted-foreground)]">Select a resource above to open it in your workspace.</p></div>}
     </section>
   )
 }
