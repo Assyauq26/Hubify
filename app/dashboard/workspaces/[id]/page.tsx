@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import WorkspaceTabs from '@/components/workspaces/WorkspaceTabs'
@@ -18,20 +17,26 @@ export default async function WorkspacePage({ params }: { params: Promise<{ id: 
   const summaries = (resources ?? []).map((resource) => ({ id: resource.id, title: resource.title, type: resource.type as ResourceType }))
 
   return (
-    <div className="min-w-0 bg-[var(--background)] px-[var(--content-gutter)] py-6 text-[var(--foreground)] sm:py-8 lg:px-10 lg:py-10">
-      <div className="mx-auto max-w-6xl">
-        <Link href="/dashboard/workspaces" className="inline-flex min-h-11 items-center rounded-sm text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--focus-ring)]">← Workspaces</Link>
-        <header className="mt-3 border-b border-[var(--border)] pb-7">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+    <div className="min-h-[calc(100vh-0.01rem)] min-w-0 bg-[var(--background)] text-[var(--foreground)]">
+      <div className="mx-auto flex min-h-screen max-w-[1800px] flex-col">
+        <header className="shrink-0 border-b border-[var(--border)] bg-[var(--background)] px-[var(--content-gutter)] py-5 sm:px-8 lg:px-10">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--muted-foreground)]">Workspace</p>
-              <h1 className="mt-2 break-words text-[30px] font-semibold leading-tight tracking-[-0.03em] sm:text-[34px]">{workspace.name}</h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted)]">{workspace.description || 'Keep the resources for this work together.'}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--muted-foreground)]">Workspace</p>
+              <h1 className="mt-1 truncate text-2xl font-semibold tracking-[-0.03em] sm:text-3xl">{workspace.name}</h1>
+              {workspace.description ? <p className="mt-1 max-w-3xl truncate text-sm text-[var(--muted)]">{workspace.description}</p> : null}
             </div>
-            <Link href={`/dashboard/workspaces/${id}/resources/new`} className="ui-button-primary inline-flex min-h-11 shrink-0 items-center justify-center">Add resource</Link>
+            <a href={`/dashboard/workspaces/${id}/resources/new`} className="ui-button-primary inline-flex min-h-11 shrink-0 items-center justify-center">Add resource</a>
           </div>
         </header>
-        {resourcesError ? <div className="ui-error mt-7" role="alert">We could not load this workspace&apos;s resources. Please try again.</div> : <WorkspaceTabs workspaceId={id} resources={summaries} />}
+
+        {resourcesError ? (
+          <div className="px-[var(--content-gutter)] py-6 sm:px-8 lg:px-10"><div className="ui-error" role="alert">We could not load this workspace&apos;s resources. Please try again.</div></div>
+        ) : (
+          <div className="min-h-0 flex-1 px-[var(--content-gutter)] py-4 sm:px-8 lg:px-10 lg:py-5">
+            <WorkspaceTabs workspaceId={id} resources={summaries} />
+          </div>
+        )}
       </div>
     </div>
   )
