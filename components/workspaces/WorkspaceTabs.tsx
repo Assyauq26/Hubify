@@ -14,9 +14,14 @@ export type WorkspaceResourceSummary = { id: string; title: string; type: Resour
 type Props = { workspaceId: string; resources: WorkspaceResourceSummary[] }
 
 const storageKey = (workspaceId: string) => `hubify:workspace-tabs:${workspaceId}`
-const filters: Array<{ value: ResourceType | 'all'; label: string }> = [
-  { value: 'all', label: 'All resources' }, { value: 'file', label: 'Files' }, { value: 'link', label: 'Links' },
-  { value: 'note', label: 'Notes' }, { value: 'table', label: 'Tables' }, { value: 'list', label: 'Lists' },
+const resourceIcons: Record<ResourceType, string> = { file: '◉', link: '↗', note: '✎', table: '▦', list: '☷' }
+const categories: Array<{ value: ResourceType | 'all'; label: string; icon: string }> = [
+  { value: 'all', label: 'All resources', icon: '⌘' },
+  { value: 'file', label: 'Files', icon: '◉' },
+  { value: 'link', label: 'Links', icon: '↗' },
+  { value: 'note', label: 'Notes', icon: '✎' },
+  { value: 'table', label: 'Tables', icon: '▦' },
+  { value: 'list', label: 'Lists', icon: '☷' },
 ]
 
 function readStored(workspaceId: string) {
@@ -81,48 +86,57 @@ export default function WorkspaceTabs({ workspaceId, resources }: Props) {
   }
 
   return (
-    <section aria-label="Workspace resources" className="mt-6">
-      <div role="tablist" aria-label="Open resources" className="flex min-h-12 items-stretch overflow-x-auto border-y border-[var(--border)] bg-[var(--surface)]" onKeyDown={(event) => {
-        if (!activeId) return
-        if (event.key === 'ArrowRight') { event.preventDefault(); moveTab(activeId, 'next') }
-        if (event.key === 'ArrowLeft') { event.preventDefault(); moveTab(activeId, 'previous') }
-        if (event.key === 'Home') { event.preventDefault(); moveTab(activeId, 'first') }
-        if (event.key === 'End') { event.preventDefault(); moveTab(activeId, 'last') }
-      }}>
-        {tabs.length ? tabs.map((tab) => {
-          const active = tab.resourceId === activeId
-          const panelId = `workspace-panel-${tab.resourceId}`
-          return (
-            <div key={tab.resourceId} className={`flex shrink-0 items-center border-r border-[var(--border)] ${active ? 'bg-[var(--background)]' : 'bg-[var(--surface)]'}`}>
-              <button ref={(node) => { tabRefs.current[tab.resourceId] = node }} type="button" role="tab" id={`workspace-tab-${tab.resourceId}`} aria-selected={active} aria-controls={panelId} tabIndex={active ? 0 : -1} onClick={() => void activate(tab.resourceId)} className={`min-h-12 max-w-56 truncate border-b-2 px-4 text-left text-xs font-medium outline-none focus-visible:border-[var(--foreground)] focus-visible:bg-[var(--surface-secondary)] focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-inset ${active ? 'border-[var(--foreground)] text-[var(--foreground)]' : 'border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]'}`}>
-                <span className="mr-2 text-[10px] uppercase tracking-[0.1em] text-[var(--muted-foreground)]">{tab.type}</span>{tab.title}{tab.dirty ? <span className="ml-1" aria-label="Unsaved changes">•</span> : null}
-              </button>
-              <button type="button" aria-label={`Close ${tab.title}`} onClick={() => void close(tab.resourceId)} className="touch-target inline-flex h-11 w-11 shrink-0 items-center justify-center text-lg leading-none text-[var(--muted-foreground)] outline-none hover:bg-[var(--surface-secondary)] hover:text-[var(--foreground)] focus-visible:bg-[var(--surface-secondary)] focus-visible:text-[var(--foreground)] focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-inset">×</button>
+    <section aria-label="Workspace resources" className="mt-4 lg:mt-5">
+      {activeResource ? (
+        <>
+          <div role="tablist" aria-label="Open resources" className="flex min-h-12 items-stretch overflow-x-auto border-y border-[var(--border)] bg-[var(--surface)]" onKeyDown={(event) => {
+            if (!activeId) return
+            if (event.key === 'ArrowRight') { event.preventDefault(); moveTab(activeId, 'next') }
+            if (event.key === 'ArrowLeft') { event.preventDefault(); moveTab(activeId, 'previous') }
+            if (event.key === 'Home') { event.preventDefault(); moveTab(activeId, 'first') }
+            if (event.key === 'End') { event.preventDefault(); moveTab(activeId, 'last') }
+          }}>
+            {tabs.map((tab) => {
+              const active = tab.resourceId === activeId
+              return (
+                <div key={tab.resourceId} className={`flex shrink-0 items-center border-r border-[var(--border)] ${active ? 'bg-[var(--background)]' : 'bg-[var(--surface)]'}`}>
+                  <button ref={(node) => { tabRefs.current[tab.resourceId] = node }} type="button" role="tab" id={`workspace-tab-${tab.resourceId}`} aria-selected={active} aria-controls={`workspace-panel-${tab.resourceId}`} tabIndex={active ? 0 : -1} onClick={() => void activate(tab.resourceId)} className={`min-h-12 max-w-64 truncate border-b-2 px-4 text-left text-xs font-medium outline-none focus-visible:bg-[var(--surface-secondary)] focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-inset ${active ? 'border-[var(--foreground)] text-[var(--foreground)]' : 'border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]'}`}>
+                    <span className="mr-2 text-[10px] uppercase tracking-[0.1em] text-[var(--muted-foreground)]">{resourceIcons[tab.type]}</span>{tab.title}{tab.dirty ? <span className="ml-1" aria-label="Unsaved changes">•</span> : null}
+                  </button>
+                  <button type="button" aria-label={`Close ${tab.title}`} onClick={() => void close(tab.resourceId)} className="touch-target inline-flex h-11 w-11 shrink-0 items-center justify-center text-lg leading-none text-[var(--muted-foreground)] outline-none hover:bg-[var(--surface-secondary)] hover:text-[var(--foreground)] focus-visible:bg-[var(--surface-secondary)] focus-visible:text-[var(--foreground)] focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-inset">×</button>
+                </div>
+              )
+            })}
+            <Link href={`/dashboard/workspaces/${workspaceId}/resources/new`} aria-label="Add resource" className="ml-auto flex min-h-12 shrink-0 items-center px-4 text-xs font-medium text-[var(--muted)] outline-none hover:bg-[var(--surface-secondary)] hover:text-[var(--foreground)] focus-visible:bg-[var(--surface-secondary)] focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-inset">+</Link>
+          </div>
+
+          <nav aria-label="Resource categories" className="border-b border-[var(--border)] bg-[var(--surface)]">
+            <div className="flex items-center gap-1 overflow-x-auto px-1">
+              {categories.map((item) => {
+                const active = filter === item.value
+                return (
+                  <button key={item.value} type="button" onClick={() => setFilter(item.value)} aria-pressed={active} title={item.label} aria-label={item.label} className={`inline-flex min-h-12 min-w-12 shrink-0 items-center justify-center border-b-2 px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-inset ${active ? 'border-[var(--foreground)] text-[var(--foreground)]' : 'border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]'}`}>
+                    <span aria-hidden="true">{item.icon}</span>
+                    <span className="sr-only">{item.label}</span>
+                  </button>
+                )
+              })}
             </div>
-          )
-        }) : null}
-        <Link href={`/dashboard/workspaces/${workspaceId}/resources/new`} className="ml-auto flex min-h-12 shrink-0 items-center px-4 text-xs font-medium text-[var(--muted)] outline-none hover:bg-[var(--surface-secondary)] hover:text-[var(--foreground)] focus-visible:bg-[var(--surface-secondary)] focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-inset">+ Add</Link>
-      </div>
+          </nav>
 
-      <nav aria-label="Resource type filter" className="mt-4 flex gap-1 overflow-x-auto border-b border-[var(--border)]">
-        {filters.map((item) => {
-          const active = filter === item.value
-          return <button key={item.value} type="button" onClick={() => setFilter(item.value)} aria-pressed={active} className={`min-h-11 shrink-0 border-b-2 px-3 text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-inset ${active ? 'border-[var(--foreground)] text-[var(--foreground)]' : 'border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]'}`}>{item.label}</button>
-        })}
-      </nav>
-
-      <div className="mt-4 min-h-[calc(100vh-220px)] overflow-hidden border border-[var(--border)] bg-[var(--surface)]">
-        {activeResource ? (
-          <div id={`workspace-panel-${activeId}`} role="tabpanel" aria-labelledby={`workspace-tab-${activeId}`} tabIndex={0} className="min-h-[calc(100vh-220px)] overflow-hidden bg-[var(--surface)] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--focus-ring)]">
+          <div id={`workspace-panel-${activeId}`} role="tabpanel" aria-labelledby={`workspace-tab-${activeId}`} tabIndex={0} className="min-h-[calc(100vh-16rem)] overflow-hidden border-x border-b border-[var(--border)] bg-[var(--surface)] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--focus-ring)]">
             {activeResource.type === 'note' ? <WorkspaceNoteEditor resourceId={activeId!} workspaceId={workspaceId} onDirtyChange={(dirty) => setDirty(activeId!, dirty)} onTitleChange={(title) => updateTitle(activeId!, title)} /> : null}
             {activeResource.type === 'table' ? <WorkspaceTableEditor resourceId={activeId!} workspaceId={workspaceId} onDirtyChange={(dirty) => setDirty(activeId!, dirty)} onTitleChange={(title) => updateTitle(activeId!, title)} /> : null}
             {activeResource.type === 'list' ? <WorkspaceListEditor resourceId={activeId!} workspaceId={workspaceId} onDirtyChange={(dirty) => setDirty(activeId!, dirty)} onTitleChange={(title) => updateTitle(activeId!, title)} /> : null}
             {activeResource.type === 'file' || activeResource.type === 'link' ? <WorkspaceResourcePanel resourceId={activeId!} type={activeResource.type} title={activeResource.title} /> : null}
           </div>
-        ) : (
-          <div className="flex min-h-[calc(100vh-220px)] items-center justify-center p-10 text-center"><div><p className="text-sm font-semibold">Select a resource</p><p className="mt-1 text-sm text-[var(--muted-foreground)]">Open a resource from the tabs above or add a new one.</p><Link href={`/dashboard/workspaces/${workspaceId}/resources/new`} className="ui-button-secondary mt-5 inline-flex min-h-11 items-center justify-center">Add resource</Link></div></div>
-        )}
-      </div>
+        </>
+      ) : (
+        <div className="border border-dashed border-[var(--border-strong)] bg-[var(--surface)] p-10 text-center">
+          <p className="text-sm font-semibold">No resource is open</p>
+          <p className="mt-1 text-sm text-[var(--muted-foreground)]">Choose a resource from the workspace library to open it here.</p>
+        </div>
+      )}
     </section>
   )
 }
