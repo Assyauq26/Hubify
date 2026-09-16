@@ -40,7 +40,6 @@ export default function WorkspaceTabs({ workspaceId, resources }: Props) {
   const [hydrated, setHydrated] = useState(false)
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({})
   const resourceMap = useMemo(() => new Map(resources.map((resource) => [resource.id, resource])), [resources])
-  const filteredResources = useMemo(() => filter === 'all' ? resources : resources.filter((resource) => resource.type === filter), [filter, resources])
 
   useEffect(() => {
     const stored = readStored(workspaceId)
@@ -101,13 +100,15 @@ export default function WorkspaceTabs({ workspaceId, resources }: Props) {
               return (
                 <div key={tab.resourceId} className={`flex shrink-0 items-center border-r border-[var(--border)] ${active ? 'bg-[var(--background)]' : 'bg-[var(--surface)]'}`}>
                   <button ref={(node) => { tabRefs.current[tab.resourceId] = node }} type="button" role="tab" id={`workspace-tab-${tab.resourceId}`} aria-selected={active} aria-controls={`workspace-panel-${tab.resourceId}`} tabIndex={active ? 0 : -1} onClick={() => void activate(tab.resourceId)} className={`min-h-12 max-w-64 truncate border-b-2 px-4 text-left text-xs font-medium outline-none focus-visible:bg-[var(--surface-secondary)] focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-inset ${active ? 'border-[var(--foreground)] text-[var(--foreground)]' : 'border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]'}`}>
-                    <span className="mr-2 text-[10px] uppercase tracking-[0.1em] text-[var(--muted-foreground)]">{resourceIcons[tab.type]}</span>{tab.title}{tab.dirty ? <span className="ml-1" aria-label="Unsaved changes">•</span> : null}
+                    <span className="mr-2 text-sm" aria-hidden="true">{resourceIcons[tab.type]}</span>
+                    <span className="truncate align-middle">{tab.title}</span>
+                    {tab.dirty ? <span className="ml-1" aria-label="Unsaved changes">•</span> : null}
                   </button>
                   <button type="button" aria-label={`Close ${tab.title}`} onClick={() => void close(tab.resourceId)} className="touch-target inline-flex h-11 w-11 shrink-0 items-center justify-center text-lg leading-none text-[var(--muted-foreground)] outline-none hover:bg-[var(--surface-secondary)] hover:text-[var(--foreground)] focus-visible:bg-[var(--surface-secondary)] focus-visible:text-[var(--foreground)] focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-inset">×</button>
                 </div>
               )
             })}
-            <Link href={`/dashboard/workspaces/${workspaceId}/resources/new`} aria-label="Add resource" className="ml-auto flex min-h-12 shrink-0 items-center px-4 text-xs font-medium text-[var(--muted)] outline-none hover:bg-[var(--surface-secondary)] hover:text-[var(--foreground)] focus-visible:bg-[var(--surface-secondary)] focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-inset">+</Link>
+            <Link href={`/dashboard/workspaces/${workspaceId}/resources/new`} aria-label="Add resource" title="Add resource" className="ml-auto flex min-h-12 shrink-0 items-center justify-center px-4 text-sm font-medium text-[var(--muted)] outline-none hover:bg-[var(--surface-secondary)] hover:text-[var(--foreground)] focus-visible:bg-[var(--surface-secondary)] focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-inset">+</Link>
           </div>
 
           <nav aria-label="Resource categories" className="border-b border-[var(--border)] bg-[var(--surface)]">
