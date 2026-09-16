@@ -71,7 +71,7 @@ export function AppShell({ email, children, workspaces = [] }: Props) {
                 )
               }) : <Link href="/dashboard/workspaces/new" className="block rounded-md px-3 py-2 text-sm text-[var(--muted)] hover:bg-[var(--surface-secondary)] hover:text-[var(--foreground)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]">Create your first workspace</Link>}
             </div>
-            <Link href="/dashboard/workspaces" className="mt-2 block px-3 text-xs font-medium text-[var(--muted)] underline underline-offset-4 hover:text-[var(--foreground)]">View all workspaces</Link>
+            <Link href="/dashboard/workspaces" className="mt-2 block px-3 text-xs font-medium text-[var(--muted)] underline underline-offset-4 hover:text-[var(--foreground)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]">View all workspaces</Link>
           </div>
         </nav>
 
@@ -97,8 +97,8 @@ export function AppShell({ email, children, workspaces = [] }: Props) {
       <nav aria-label="Mobile navigation" className="fixed inset-x-0 bottom-0 z-30 border-t border-[var(--border)] bg-[var(--surface)] pb-[env(safe-area-inset-bottom)] lg:hidden">
         <div className="grid grid-cols-3">
           <Link href="/dashboard" aria-current={pathname === '/dashboard' ? 'page' : undefined} className={`mobile-nav-item text-xs font-medium ${pathname === '/dashboard' ? 'text-[var(--foreground)]' : 'text-[var(--muted)]'}`}>Home</Link>
-          <Link href="/dashboard/search" aria-current={pathname.startsWith('/dashboard/search') ? 'page' : undefined} className={`mobile-nav-item text-xs font-medium ${pathname.startsWith('/dashboard/search') ? 'text-[var(--foreground)]' : 'text-[var(--muted)]`}>Search</Link>
-          <Link href="/dashboard/workspaces" aria-current={pathname.startsWith('/dashboard/workspaces') ? 'page' : undefined} className={`mobile-nav-item text-xs font-medium ${pathname.startsWith('/dashboard/workspaces') ? 'text-[var(--foreground)]' : 'text-[var(--muted)]`}>Workspaces</Link>
+          <Link href="/dashboard/search" aria-current={pathname.startsWith('/dashboard/search') ? 'page' : undefined} className={`mobile-nav-item text-xs font-medium ${pathname.startsWith('/dashboard/search') ? 'text-[var(--foreground)]' : 'text-[var(--muted)]'}`}>Search</Link>
+          <Link href="/dashboard/workspaces" aria-current={pathname.startsWith('/dashboard/workspaces') ? 'page' : undefined} className={`mobile-nav-item text-xs font-medium ${pathname.startsWith('/dashboard/workspaces') ? 'text-[var(--foreground)]' : 'text-[var(--muted)]'}`}>Workspaces</Link>
         </div>
       </nav>
     </div>
